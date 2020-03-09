@@ -304,13 +304,13 @@ namespace UnityEngine.Rendering.Universal
 
             // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
             if (Application.isMobilePlatform)
-                return ClearFlag.All;
+                return ClearFlag.None;//Only Clear Color
 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
                 cameraClearFlags == CameraClearFlags.Nothing)
                 return ClearFlag.Depth;
 
-            return ClearFlag.All;
+            return ClearFlag.None;
         }
 
         // Initialize Camera Render State
@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.Universal
                 passDepthAttachment = m_CameraDepthTarget;
             }
 
-            if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
+            if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted && !renderPass.bUseConfigureSetting)
             {
                 m_FirstCameraRenderPassExecuted = true;
 
@@ -403,8 +403,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Only setup render target if current render pass attachments are different from the active ones
-            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment || renderPass.bUseConfigureSetting)
+            {
                 SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

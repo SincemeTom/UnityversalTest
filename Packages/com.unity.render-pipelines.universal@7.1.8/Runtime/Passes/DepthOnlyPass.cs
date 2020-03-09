@@ -46,8 +46,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
-            ConfigureTarget(depthAttachmentHandle.Identifier());
+            //cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
+            //           ConfigureTarget(depthAttachmentHandle.Identifier(), depthAttachmentHandle.Identifier());
+            bUseConfigureSetting = true;
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

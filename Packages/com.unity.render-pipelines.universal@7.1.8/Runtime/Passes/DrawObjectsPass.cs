@@ -34,7 +34,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_RenderStateBlock.stencilState = stencilState;
             }
         }
-
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {

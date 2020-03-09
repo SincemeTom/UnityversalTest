@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.Universal
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
-            bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
+            bool createDepthTexture = cameraData.requiresDepthTexture /*&& !requiresDepthPrepass*/;
             bool postProcessEnabled = cameraData.postProcessEnabled;
 
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
@@ -178,6 +178,11 @@ namespace UnityEngine.Rendering.Universal
                 m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                 EnqueuePass(m_DepthPrepass);
             }
+            if (createDepthTexture)
+            {
+                m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
+                EnqueuePass(m_CopyDepthPass);
+            }
 
             if (resolveShadowsInScreenSpace)
             {
@@ -197,11 +202,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DrawSkyboxPass);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
-            if (createDepthTexture)
-            {
-                m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
-                EnqueuePass(m_CopyDepthPass);
-            }
+
 
             if (renderingData.cameraData.requiresOpaqueTexture)
             {

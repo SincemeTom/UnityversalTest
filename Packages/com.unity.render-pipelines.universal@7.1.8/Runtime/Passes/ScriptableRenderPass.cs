@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
-
+        internal bool bUseConfigureSetting { get; set; }
         RenderTargetIdentifier m_ColorAttachment = BuiltinRenderTextureType.CameraTarget;
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         ClearFlag m_ClearFlag = ClearFlag.None;
@@ -72,6 +72,7 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
+            bUseConfigureSetting = false;
         }
 
         /// <summary>

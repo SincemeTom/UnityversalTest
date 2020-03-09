@@ -71,8 +71,9 @@ Shader "Universal Render Pipeline/Lit"
             Tags{"LightMode" = "UniversalForward"}
 
             Blend[_SrcBlend][_DstBlend]
-            ZWrite[_ZWrite]
+            ZWrite Off
             Cull[_Cull]
+			ZTest Equal
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library

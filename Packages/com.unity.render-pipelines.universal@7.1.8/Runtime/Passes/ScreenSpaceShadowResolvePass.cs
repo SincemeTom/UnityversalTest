@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
             ConfigureTarget(screenSpaceOcclusionTexture);
-            ConfigureClear(ClearFlag.All, Color.white);
+            ConfigureClear(ClearFlag.Color, Color.white);
         }
 
         /// <inheritdoc/>

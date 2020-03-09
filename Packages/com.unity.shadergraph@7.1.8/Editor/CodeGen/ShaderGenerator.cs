@@ -911,8 +911,8 @@ namespace UnityEditor.ShaderGraph
                     materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
                     materialOptions.cullMode = twoSided ? SurfaceMaterialOptions.CullMode.Off : SurfaceMaterialOptions.CullMode.Back;
-                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.On;
+                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.Equal;
+                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
                     break;
                 case SurfaceType.Transparent:
                     switch (alphaMode)

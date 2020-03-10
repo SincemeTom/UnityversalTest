@@ -72,8 +72,8 @@ Shader "Universal Render Pipeline/Lit"
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite Off
-            Cull[_Cull]
 			ZTest Equal
+            Cull[_Cull]	
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library

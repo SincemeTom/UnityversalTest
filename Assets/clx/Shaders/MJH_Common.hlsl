@@ -1,0 +1,470 @@
+#ifndef MJH_COMMON
+#define MJH_COMMON
+
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
+#define _WorldSpaceLightPos0 _MainLightPosition
+#define _LightColor0 _MainLightColor
+float4 GetShadowCoordScreen(float4 PositionCS)
+{
+	return ComputeScreenPos(PositionCS);
+}
+
+float4 GetShadowCoord(float4 PositionWS)
+{
+	return TransformWorldToShadowCoord(PositionWS);
+}
+
+float3 UnityWorldSpaceViewDir(float3 worldPos)
+{
+	return _WorldSpaceCameraPos.xyz - worldPos;
+}
+
+struct appdata {
+    float4 vertex : POSITION;
+    float4 tangent : TANGENT;
+    float3 normal : NORMAL;
+    float4 texcoord : TEXCOORD0;
+    float4 texcoord1 : TEXCOORD1;
+    float4 texcoord2 : TEXCOORD2;
+    float4 texcoord3 : TEXCOORD3;
+};
+
+struct v2f
+{
+    float4 pos : SV_POSITION;
+    float4 uv : TEXCOORD0;
+    float4 worldPos   : TEXCOORD1;
+    half3 world_normal  : TEXCOORD2;
+    half3 world_tangent : TEXCOORD3;
+    half3 world_binormal : TEXCOORD4;
+    half4 screen_uv : TEXCOORD5;
+#ifdef _MAIN_LIGHT_SHADOWS
+	float4 shadowCoord              : TEXCOORD7;
+#endif
+
+    #if defined(LIGHTMAP_ON)|| defined(UNITY_SHOULD_SAMPLE_SH)
+        float4 ambientOrLightmapUV : TEXCOORD8;
+    #endif
+
+};
+
+sampler2D _MainTex;
+float4 _MainTex_ST;
+
+float4 LightmapUVTransform; //0.499023, 0.499023, 0.000488281 0.000488281
+
+v2f vert (appdata v)
+{
+    v2f o = (v2f)0;
+
+	float3 positionWS = TransformObjectToWorld(v.vertex);
+	float4 positionCS = TransformWorldToHClip(positionWS.xyz);
+
+    o.pos = positionCS;
+
+    o.uv.xy = TRANSFORM_TEX(v.texcoord.xy, _MainTex);
+#ifdef _LightMapEnable
+    o.uv.zw = v.texcoord1.xy * LightmapUVTransform.xy + LightmapUVTransform.zw;
+#else
+    o.uv.zw = half2(0,0);
+#endif
+	o.worldPos = half4(positionWS,1);
+
+    float3 normal  = v.normal;
+    half3 wNormal = TransformObjectToWorldNormal(normal);
+    half3 wTangent = TransformObjectToWorldDir(v.tangent.xyz);
+    half tangentSign = v.tangent.w * unity_WorldTransformParams.w;  
+    half3 wBinormal = cross(wNormal, wTangent) * tangentSign;  
+                    
+    o.world_normal = wNormal;
+    o.world_tangent = wTangent; 
+    o.world_binormal = wBinormal;
+
+#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
+
+#if SHADOWS_SCREEN
+	o.shadowCoord =  ComputeScreenPos(positionCS);
+#else
+	o.shadowCoord =  TransformWorldToShadowCoord(o.worldPos);
+#endif
+#endif
+    o.screen_uv = ComputeScreenPos(positionCS);
+
+    return o;
+}
+
+
+sampler2D _EnvMap;
+half EnvStrength;
+float4 EnvInfo;
+float4 ShadowColor;
+
+float4 _ColorTransform0;
+float4 _ColorTransform1;
+float4 _ColorTransform2;
+
+float4 _ColorTransform3;
+float4 _ColorTransform4;
+float4 _ColorTransform5;
+
+
+
+float3 ApplyColorTransform(float3 InBaseColor, float SSSMask, float mask)
+{
+    float3 baseColorData = InBaseColor;
+    //ColorTransform
+    float3 BaseColor = InBaseColor;
+    BaseColor = lerp(BaseColor,saturate(half3(dot(_ColorTransform0,baseColorData),dot(_ColorTransform1,baseColorData),dot(_ColorTransform2,baseColorData))),mask);
+    BaseColor = lerp(BaseColor,saturate(half3(dot(_ColorTransform3,baseColorData),dot(_ColorTransform4,baseColorData),dot(_ColorTransform5,baseColorData))),SSSMask);
+    return BaseColor;
+}
+
+half3 lessThan(float3 a, float3 b)
+{
+	half3 r = half3(1,1,1);
+    r.x = a.x < b.x ? 0 : 1;
+    r.y = a.y < b.y ? 0 : 1;
+    r.z = a.z < b.z ? 0 : 1;
+    return r;
+}
+
+float DecodeDepth(in float4 rgba)
+{
+    return rgba.x;
+}
+half CastHalf(in half color)
+{
+    return color;
+    return color;
+}
+half2 CastHalf(in half2 color)
+{
+    return color;
+    return color;
+}
+half3 CastHalf(in half3 color)
+{
+    return color;
+    return color;
+}
+half4 CastHalf(in half4 color)
+{
+    return color;
+    return color;
+}
+half4 MJH_UnpackNormal(in float4 normal)
+{
+    return half4(normal.xy * 2.0 - 1.0, normal.zw);
+}
+half3 EnvBRDFApprox( half3 SpecularColor, half Roughness, half NoV )
+{
+    const half4 c0 = { -1, -0.0275, -0.572, 0.022 };
+    const half4 c1 = { 1, 0.0425, 1.04, -0.04 };
+    half4 r = Roughness * c0 + c1;
+    half a004 = min( r.x * r.x, exp2( -9.28 * NoV ) ) * r.x + r.y;
+    half2 AB = half2( -1.04, 1.04 ) * a004 + r.zw;
+    return SpecularColor * AB.x + AB.y;
+}
+
+float3 SpecBRDFPbr(in float Roughness1,in float Roughness2,in float3 L,in float3 V,in float3 N,in float3 SpecularColor)
+{
+    float3 H = normalize(L+V);
+    float NoH = saturate(dot(N,H));
+    float NoL = saturate(dot(N,L));
+    float NoV = saturate(dot(N,V));
+    float VoH = saturate(dot(V,H));
+    float m = Roughness1 * Roughness1;
+    float m2 = m * m;
+    float d = (NoH * m2 - NoH ) * NoH + 1;
+    float D1 = m2 / ( d * d * 3.14159265);
+
+    m = Roughness2 * Roughness2;
+    m2 = m * m;
+    d = (NoH * m2 - NoH ) * NoH + 1;
+
+    float D2 = m2 / ( d * d * 3.14159265);
+    
+    float k= m * 0.5;
+
+    float G_SchlickV= NoV * ( 1 - k) + k;
+    float G_SchlickL= NoL * ( 1 - k) + k;
+    float G = 0.25 / ( G_SchlickV * G_SchlickL);
+    float3 F = SpecularColor + (saturate(50 * SpecularColor.g) - SpecularColor) * exp2((-5.55473 * VoH - 6.98316) * VoH);
+
+    float3 BRDF = (D1 * 1.5 + D2 * 0.5) * F * G;			
+    return BRDF;
+}
+
+half3 DynamicGILight(in float3 worldNormal)
+{
+    float4 cPointCloudm[6] = 
+    {
+        float4 (1,	0.9658147,	0.8993845,	1),
+        float4 (1,	0.9658147,	0.8993845,	1),
+        float4 (1,	0.9658147,	0.8993845,	1),
+        float4 (1,	0.9658147,	0.8993845,	1),
+        float4 (1,	0.9658147,	0.8993845,	1),
+        float4 (1,	0.9658147,	0.8993845,	1),
+    };
+    half3 nSquared= worldNormal * worldNormal;
+    //int3 isNegative=((worldNormal)<(0.0));
+    half3 isNegative = half3(lessThan(worldNormal, half3(0.0,0.0,0.0))) ;
+    half4 linearColor = nSquared.x * cPointCloudm[isNegative.x] + nSquared.y * cPointCloudm[isNegative.y + 2] + nSquared.z * cPointCloudm[isNegative.z + 4];
+
+    linearColor.rgb = ((half3)max(half3(0.9,0.9,0.9),linearColor.rgb));
+
+    linearColor.rgb *= (ShadowColor.x * (10.0 + cPointCloudm[3].w * ShadowColor.z * 100)).xxx;
+    return linearColor.xyz;
+}
+half3 DynamicGILightUseBentNormal(in v2f IN,in float3 N,in float3 bentNormal)
+{
+    return DynamicGILight(N);
+}
+half3 GetIBLIrradiance(in half Roughness,in float3 R)
+{			
+    half3 sampleEnvSpecular=half3(0,0,0);
+    half MIP_ROUGHNESS=0.17;
+    half level=Roughness / MIP_ROUGHNESS;
+    half fSign= R.z > 0;
+    half fSign2 = fSign * 2 - 1;
+    R.xy /= (R.z * fSign2 + 1);
+    R.xy = R.xy * half2(0.25,-0.25) + 0.25 + 0.5 * fSign;				
+    half4 srcColor;								
+    srcColor = tex2Dlod (_EnvMap, half4(R.xy, 0, level));
+    sampleEnvSpecular= srcColor.rgb * (srcColor.a * srcColor.a * 16.0);				
+    sampleEnvSpecular *= EnvStrength * EnvInfo.w * 10;
+    //return srcColor.rgb;
+    return sampleEnvSpecular;
+
+}
+
+half3 IBL_Specular(in half Roughness,in float3 R, in half3 SpecularColor, in half4 GILighting)
+{
+    half3 IBLSpecular = GetIBLIrradiance(Roughness, R);
+//return IBLSpecular;
+    IBLSpecular*= GILighting.w;
+    return SpecularColor * IBLSpecular;
+}
+half3 Sun_Specular(in float3 L,in float3 N, in float3 V, in half Roughness,in float3 R,in half NoV,in half NoL,in half3 SpecularColor)
+{
+	half3 H = normalize(V + L);
+	half VdotH = clamp(dot(V,H),0,1);
+	half NdotH = clamp(dot(N,H),0,1);
+    half rough = max(0.08,Roughness);
+    float a = rough * rough;
+    float a2 = a * a;
+    float d = (NdotH * a2 - NdotH) * NdotH + 1.0;
+    float D_GGX = rough / (d * d * 3.141593);
+
+    float k = a * 0.5;
+    
+ 
+    float G_SchlickV= NoV * (1-k) + k;
+    float G_SchlickL= saturate(NoL)*(1-k)+k;
+
+    float G = 0.25 / (G_SchlickV * G_SchlickL);
+    
+    float3 F = SpecularColor + (saturate(SpecularColor.g * 50) - SpecularColor) * exp2((-5.55473 * VdotH - 6.98316) * VdotH);
+
+    half3 sunSpec = D_GGX * G * F;
+    return sunSpec;
+}
+
+float CrystalBRDF(in float Roughness,in float3 L,in float3 V,in float3 N,in float3 SpecularColor )
+{
+    float3 H = normalize(L+V);
+    float NoH = saturate(dot(N,H));
+    float NoL = saturate(dot(N,L));
+    float NoV = saturate(dot(N,V));
+    float VoH = saturate(dot(V,H));
+    float m = Roughness * Roughness;
+    float m2= m * m;
+    float d = (NoH * m2 - NoH ) * NoH + 1;
+    float D1 = m2 / ( d * d * 3.14159265);
+    m = Roughness * Roughness * 0.5;
+    m2= m * m;
+    d = (NoH * m2 - NoH ) * NoH + 1;
+    float D2 = m2 / ( d * d * 3.14159265);
+    float k = m * 0.5;
+    float G_SchlickV = NoV * ( 1 - k) + k;
+    float G_SchlickL = NoL * ( 1 - k) + k;
+    float G = 0.25 / ( G_SchlickV * G_SchlickL);
+    float3 F = SpecularColor + (saturate(50 * SpecularColor.g) - SpecularColor) * exp2((-5.55473 * VoH - 6.98316) * VoH);
+    float3 CrystalSpecBRDF = (D1 + D2) * F * G;	
+    return CrystalSpecBRDF;
+}
+half GetRoughnessFromRoughness(in half Roughness,in float3 N)
+{
+    
+    half rain= EnvInfo.x * 0.5;
+    rain = 1 - rain * saturate(3 * N.y + 0.2 + 0.1 * rain);
+    return clamp( rain * Roughness ,0.05,1);
+}
+half GetRoughnessFromSmoothness(in half Smoothness,in float3 N)
+{
+    
+    half rain= EnvInfo.x * 0.5;
+    rain = 1 - rain * saturate(3 * N.y + 0.2 + 0.1 * rain);
+    return clamp( rain - rain * Smoothness ,0.05,1);
+}
+
+
+//Light0,1,2
+
+float4 Lights00 = float4(0,	0.6600003,	1	,0.5);
+float4 Lights01 = float4(13.51172,	11.5179	,9.20715,	0);
+float4 Lights02 = float4(-0.11366,	0.7181236,	0.6865711,	1);
+float4 Lights03 = float4(0.9999999,	0.9999999,	0.9999999,	0);
+
+float4 Lights10 = float4(0.05,	0.2142958,	0.4285888,	0.6811707);
+float4 Lights11 = float4(0.04736615,	0.6120656,	0.006309574,	0.5);
+float4 Lights12 = float4(1,	1,	1,	0);
+float4 Lights13 = float4(1180.298,	47.48998,	1032.886,	0);
+
+float4 Lights20 = float4(1805,	1015,	0.0005540166,	0.0009852217);
+float4 Lights21 = float4(0.5773502,	0.5773502,	0.5773502,	0.6515582);
+float4 Lights22 = float4(0,	0,	0,	0.6515584);
+float4 Lights23 = float4(-0.9832486,	0,	-0.4468413,	0);
+
+half3 LightingPS_SPEC(in float3 P,in float3 N,in float3 V,in half NoV,in half3 SpecularColor,in half Roughness,inout half3 DiffLit)
+{
+ half3 lighting=half3(0,0,0);
+ if (((Lights03.w)>(0)))
+ {
+ float3 L=((Lights00.xyz)-(P));
+ float dist=length(L);
+ (L)/=(dist);
+ float NoL=saturate(dot(N,L));
+ float Atten=saturate(((((dist)*(Lights01.w)))+(Lights00.w)));
+ (Atten)*=(Atten);
+ (DiffLit)+=(((Lights01.rgb)*(((NoL)*(Atten)))));
+ 
+ {
+ float m2=((((Roughness)*(Roughness)))+(0.0002));
+ (m2)*=(m2);
+ float3 H=normalize(((V)+(L)));
+ float NoH=saturate(dot(N,H));
+ float D=((((((((NoH)*(m2)))-(NoH)))*(NoH)))+(1));
+ (D)=(((((D)*(D)))+(1e-06)));
+ (D)=(((((0.25)*(m2)))/(D)));
+ (lighting)=(((((Lights01.rgb)*(SpecularColor)))*(((((Atten)*(NoL)))*(D)))));
+ }
+ }
+ if (((((Lights13.w)>(0)))&&(((Lights12.w)<=(0)))))
+ {
+ float4 LightPosRange=Lights10;
+ float4 LightColorAtten=Lights11;
+ float3 LightDir=Lights12.xyz;
+ float3 FallOffCosHalfThetaPHi=Lights13.xyz;
+ half3 L=((LightPosRange.xyz)-(P));
+ half D=length(L);
+ (L)/=(D);
+ half NoL=saturate(dot(N,L));
+ half DoL=dot(LightDir,(-(L)));
+ half Atten=saturate(((((D)*(LightColorAtten.w)))+(LightPosRange.w)));
+ (Atten)*=(Atten);
+ half spot=pow(saturate(((((DoL)*(FallOffCosHalfThetaPHi.y)))+(FallOffCosHalfThetaPHi.z))),FallOffCosHalfThetaPHi.x);
+ 
+ {
+ float m2=((((Roughness)*(Roughness)))+(0.0002));
+ (m2)*=(m2);
+ float3 H=normalize(((V)+(L)));
+ float NoH=saturate(dot(N,H));
+ float D=((((((((NoH)*(m2)))-(NoH)))*(NoH)))+(1));
+ (D)=(((((D)*(D)))+(1e-06)));
+ (D)=(((((0.25)*(m2)))/(D)));
+ (lighting)+=(((((((Lights11.rgb)*(SpecularColor)))*(((((Atten)*(NoL)))*(D)))))*(spot)));
+ }
+ (DiffLit)+=(((LightColorAtten.rgb)*(((((NoL)*(Atten)))*(spot)))));
+ }
+ return lighting;
+}
+float3 GetDirectSPEC(float Roughness,float3 L,float3 V,float3 N,float3 SpecularColor)
+{
+    float NoL=saturate(dot(N,L));
+    float NoL4=NoL * NoL *NoL * NoL;
+    float3 H=normalize(V + L);
+    float NoH=saturate(dot(N,H));
+    float m=((Roughness)*(Roughness));
+    float m2=((m)*(m));
+    float d = (NoH * m2 - NoH ) * NoH + 1;
+    float D = m2 / ( d * d ) * 0.25;
+
+    return SpecularColor * D * NoL4;
+}
+
+half AnisoSpec(in half3 V,in half3 L,in half3 N,in half NoL,in half3 Tangent,in half3 Binormal,in half RoughnessX,in half RoughnessY)
+{
+    half len=max(0.001,length(((L)+(V))));
+    half3 H=((((L)+(V)))/(len));
+    half VoN=max(0.001,dot(V,N));
+    half HoN=dot(H,N);
+    half HoT=dot(H,Tangent);
+    half HoB=dot(H,Binormal);
+    float2 beta=float2(((HoT)/(RoughnessX)),((HoB)/(RoughnessY)));
+    (beta)*=(beta);
+    half s_den=max(0.001,((((((314.15926)*(RoughnessX)))*(RoughnessY)))*(sqrt(((NoL)*(VoN))))));
+    half aniso=((exp((((-(((beta.x)+(beta.y)))))/(max(0.01,((0.5)+(((0.5)*(HoN)))))))))/(s_den));
+    return aniso;
+}
+float3 GetFinalGrayColor(in float3 rgb,in float gray)
+{
+    float x = 0;
+ float weight=0;
+ (weight)=(step(2,((saturate(gray))+(x))));
+ return ((((rgb)*(((1)-(weight)))))+(((weight)*(dot(rgb,half3(0.3,0.59,0.11))))));
+}
+
+
+float3 ApplyFogColor(float3 Color, float3 WorldPos, float3 V,float VoL, float FogEnvInfo)
+{
+    float4 FogInfo  =  float4(11.002,509,27,0);	
+    float4 FogColor =  float4(2.31,2.7,3,0.3);
+    float4 FogColor2 = float4(0,0,0,0.2742319);
+    float4 FogColor3 = float4(0,0,0,0.2869582);
+
+    float tmp = saturate(WorldPos.y * FogInfo.z + FogInfo.w);
+    float fHeightCoef = tmp * tmp;
+    fHeightCoef *= fHeightCoef;
+    float fog = 1.0 - exp(-max (0.0, V - FogInfo.x)* max (FogInfo.y * fHeightCoef, 0.1 * FogInfo.y));
+
+    float3 fogColor = FogColor2.xyz * saturate(V.y * 5.0 + 1.0) + FogColor.xyz;
+    fogColor += FogColor3.rgb * VoL * VoL;
+    //return fog.xxx;
+    float3 col = lerp(Color.rgb, Color.rgb * (1 - fog) + fogColor.rgb, fog);
+    col = clamp(col, float3(0,0,0),float3(4,4,4));
+    col *= FogEnvInfo;
+    col = col * half3(FogColor.w,FogColor2.w,FogColor3.w);
+    return col; 
+}
+float3 ApplySceneFogColor(float3 Color, float3 WorldPos, float3 V,float VoL, float FogEnvInfo)
+{
+    float4 FogInfo  =  float4(70,0.008,-0.00316,0.3555721);	
+    float4 FogColor =  float4(0.259,0.329,0.623,1.102886);
+    float4 FogColor2 = float4(0,0,0,0.77135);
+    float4 FogColor3 = float4(0.5,0.35,0.095,0.69374);
+
+    float tmp = saturate(WorldPos.y * FogInfo.z + FogInfo.w);
+    float fHeightCoef = tmp * tmp;
+    fHeightCoef *= fHeightCoef;
+    float fog = 1.0 - exp(-max (0.0, V - FogInfo.x)* max (FogInfo.y * fHeightCoef, 0.1 * FogInfo.y));
+
+    float3 fogColor = FogColor2.xyz * saturate(V.y * 5.0 + 1.0) + FogColor.xyz;
+    fogColor += FogColor3.rgb * VoL * VoL;
+    //return fog.xxx;
+    float3 col = lerp(Color.rgb, Color.rgb * (1 - fog) + fogColor.rgb, fog);
+    col = clamp(col, float3(0,0,0),float3(4,4,4));
+    col *= FogEnvInfo;
+    col = col * half3(FogColor.w,FogColor2.w,FogColor3.w);
+    return col; 
+}
+
+half GetMainLightShadowAttenuation(float4 shadowCoord)
+{
+	Light mainLight = GetMainLight(shadowCoord);
+	return mainLight.shadowAttenuation;
+}
+			
+#endif

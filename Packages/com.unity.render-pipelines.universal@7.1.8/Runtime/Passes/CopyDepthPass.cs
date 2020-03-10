@@ -54,38 +54,45 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            RenderTargetIdentifier depthSurface = source.Identifier();
-            RenderTargetIdentifier copyDepthSurface = destination.Identifier();
-
-            RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            int cameraSamples = descriptor.msaaSamples;
-
-            // TODO: we don't need a command buffer here. We can set these via Material.Set* API
-            cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
-
-            if (cameraSamples > 1)
+            //using (new ProfilingSample(cmd, m_ProfilerTag))
             {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
-                if (cameraSamples == 4)
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                RenderTargetIdentifier depthSurface = source.Identifier();
+                RenderTargetIdentifier copyDepthSurface = destination.Identifier();
+
+                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
+                int cameraSamples = descriptor.msaaSamples;
+
+                // TODO: we don't need a command buffer here. We can set these via Material.Set* API
+                cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
+
+                if (cameraSamples > 1)
                 {
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
+                    if (cameraSamples == 4)
+                    {
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                    }
+                    else
+                    {
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                    }
+
+                    Blit(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
                 }
                 else
                 {
-                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                     cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                    CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
                 }
-                
-                Blit(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
-            else
-            {
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
-            }
+                  
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = renderingData.cameraData.camera;
             SetCameraRenderState(context, ref renderingData.cameraData);
 
-            SortStable(m_ActiveRenderPassQueue);
+            //SortStable(m_ActiveRenderPassQueue);
 
             // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
             // For now we set the time variables per camera, as we plan to remove `SetupCamearProperties`.

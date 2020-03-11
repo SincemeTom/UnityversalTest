@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
-
+                settings.useRenderingLayerMaskTest = true;
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
                     var splitData = settings.splitData;

@@ -13,14 +13,14 @@ namespace UnityEngine.Rendering.Universal
         const string k_CreateCameraTextures = "Create Camera Texture";
 
         ColorGradingLutPass m_ColorGradingLutPass;
-        DepthOnlyPass m_DepthPrepass;
+        CopyDepthPass m_CopyDepthPass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawSkyboxPass m_DrawSkyboxPass;
-        CopyDepthPass m_CopyDepthPass;
         CopyColorPass m_CopyColorPass;
+        DepthOnlyPass m_DepthPrepass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         PostProcessPass m_PostProcessPass;
@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
             bool requiresDepthPrepass = renderingData.cameraData.isSceneViewCamera ||
                 (cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
             requiresDepthPrepass |= resolveShadowsInScreenSpace;
-
+            requiresDepthPrepass = true;
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until
             // we have a proper fix.
             if (cameraData.isStereoEnabled && cameraData.requiresDepthTexture)

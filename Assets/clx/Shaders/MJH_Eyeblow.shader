@@ -2,8 +2,13 @@
 {
 	Properties
 	{
-		[Toggle (PointCloudEnable)] PointCloudEnable("PointCloudEnable",float) = 0
-		_MainTex ("Base", 2D) = "white" {}
+		[Toggle(_ALPHATEST_ON)] _ALPHATEST_ON("Alpha Test",float) = 0
+		_Cutoff("CutOff", Range(0,1)) = 0.33
+
+		_MainTex("Base", 2D) = "white" {}
+		_BaseMap("Alpha", 2D) = "white"{}
+		_BaseColor("Base Color", Color) = (1, 1, 1, 1)
+
 		BaseMapBias ("BaseMapBias ", Range(-1,1)) = -1
 
 		_MaskMap("Mix AO", 2D) = "black"{}
@@ -32,7 +37,7 @@
 	}
 	SubShader
 	{
-		Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
+		Tags{"RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
 		LOD 300
 
 			// ------------------------------------------------------------------
@@ -42,18 +47,39 @@
 			// Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
 			// no LightMode tag are also rendered by Universal Render Pipeline
 			Name "ForwardLit"
-			Tags{"LightMode" = "UniversalForward"}
-
-			Blend SrcAlpha OneMinusSrcAlpha
-			ZTest On
+			Tags{"LightMode" = "UniversalForward" }
 			ZWrite Off
+			ZTest Less
+			//BlendOp Add, Max
+
+			Blend SrcAlpha OneMinusSrcAlpha, One One
+
 			HLSLPROGRAM
-			//#pragma multi_compile_fwdbase
-			#pragma multi_compile __ PointCloudEnable
+
+			#pragma prefer_hlslcc gles
+			#pragma exclude_renderers d3d11_9x
+			#pragma target 2.0
+			// -------------------------------------
+			// Universal Pipeline keywords
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+			#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+			#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+			#pragma multi_compile _ _SHADOWS_SOFT
+			#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+
+			// -------------------------------------
+			// Unity defined keywords
+			#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+			#pragma multi_compile _ LIGHTMAP_ON
+
+			//--------------------------------------
+			// GPU Instancing
+			#pragma multi_compile_instancing
+
+
 			#pragma vertex vert
 			#pragma fragment frag
-			// make fog work
-			#pragma multi_compile_fog
 			
 
 			#include "MJH_Common.hlsl"
@@ -95,7 +121,7 @@
 				// sample the texture
 				half4 texBase = tex2Dbias (_MainTex, half4(i.uv.xy, 0, BaseMapBias));
 				float Alpha = texBase.a;
-return texBase;
+				return texBase;
 
 				//Sample Mix texture
 				float AO = 1.0;
@@ -195,7 +221,7 @@ return texBase;
 
 				//Liner to Gamma
 				Color.xyz = clamp(Color.xyz, half3(0,0,0),half3(4,4,4));
-				Color.xyz = Color.xyz / (Color.xyz * 0.9661836 + 0.180676);
+				//Color.xyz = Color.xyz / (Color.xyz * 0.9661836 + 0.180676);
 
 				return half4 (Color.xyz, Alpha);
 			}

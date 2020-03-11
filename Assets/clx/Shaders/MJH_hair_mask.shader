@@ -2,13 +2,18 @@
 {
 	Properties
 	{
-		[Toggle (PointCloudEnable)] PointCloudEnable("PointCloudEnable",float) = 0
+		[Toggle (_ALPHATEST_ON)] _ALPHATEST_ON("Alpha Test",float) = 0
+		_Cutoff("CutOff", Range(0,1)) = 0.33
+
 		_MainTex ("Base", 2D) = "white" {}
+		_BaseMap("Alpha", 2D) = "white"{}
+		_BaseColor("Base Color", Color) = (1, 1, 1, 1)
+
 		BaseMapBias ("BaseMapBias ", Range(-1,1)) = -1
 		_MixTex ("Mix", 2D) = "white" {}
 		_NormalTex ("Normal", 2D) = "normal" {}
 		NormalMapBias ("NormalMapBias ", Range(-1,1)) = -0.5
-       _CutOff("CutOff", Range(0,1)) = 0.33
+
 		_EnvMap ("_EnvMap", 2D) = "black" {}
 
 		AliasingFactor ("AliasingFactor", Range(0,1)) = 0.2
@@ -41,14 +46,30 @@
 			ZWrite Off
 			ZTest Equal
 
-			Cull Off
 			HLSLPROGRAM
-			#pragma multi_compile_fwdbase
-			#pragma multi_compile __ SSS_ENABLE
+			#pragma prefer_hlslcc gles
+			#pragma exclude_renderers d3d11_9x
+			#pragma target 2.0
+			// -------------------------------------
+			// Universal Pipeline keywords
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+			#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+			#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+			#pragma multi_compile _ _SHADOWS_SOFT
+			#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+
+			// -------------------------------------
+			// Unity defined keywords
+			#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+			#pragma multi_compile _ LIGHTMAP_ON
+
+			//--------------------------------------
+			// GPU Instancing
+			#pragma multi_compile_instancing
+
 			#pragma vertex vert
 			#pragma fragment frag
-			// make fog work
-			#pragma multi_compile_fog
 			
 			#include "MJH_Common.hlsl"
 
@@ -64,7 +85,7 @@
 			half _Metallic;
 
 			half AliasingFactor;
-			float _CutOff;
+			//float _CutOff;
 			half BaseMapBias;
 			half NormalMapBias;
 			half4 cVirtualLitDir;
@@ -98,11 +119,11 @@
 				half4 texN = tex2Dbias (_NormalTex, half4(i.uv.xy, 0, NormalMapBias));
 				texN.y = 1 - texN.y;
 				half Alpha = texBase.w;
-				clip(Alpha - _CutOff);
+				//clip(Alpha - _CutOff);
 				
 				half AO = texM.z;
 				half SSSMask=0.0;
-				half3 BaseColor = texBase.rgb * texBase.rgb;
+				half3 BaseColor = texBase.rgb /** texBase.rgb*/;
 				
 
 				//Normal
@@ -188,7 +209,7 @@
 				half SunlightOffset = lerp(1,userData1.x * 2,SSSMask) * ShadowColor.g;
 				shadow *= SunlightOffset;
 				shadow *= cPointCloudm[0].w;
-				
+				//return half4(shadow.xxx, 1);
 				//Diff lighting
 				half3 diffLighting = half3(0,0,0);
 				GILighting.rgb = lerp(GILighting.rgb,  GILighting.rgb * userData1.y *2 , SSSMask);
@@ -238,11 +259,11 @@
 				float VdotL = saturate(dot(-viewDir, lightDir));
 				Color = ApplyFogColor(Color, i.worldPos.xyz, viewDir.xyz, VdotL, EnvInfo.z);
 
-				Color.xyz = Color.xyz / (Color.xyz * 0.9661836 + 0.180676);
+				//Color.xyz = Color.xyz / (Color.xyz * 0.9661836 + 0.180676);
 				//return half4(texBase.www,texBase.w);
 				// apply fog
 
-				return half4 (Color,texBase.w);
+				return half4 (Color,1);
 			}
 			
 			ENDHLSL

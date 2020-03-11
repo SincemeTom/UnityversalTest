@@ -8,6 +8,7 @@
         _AO("Ambient Occulusion", Range(0,1)) = 1
         [Toggle (_BaseColorMapEnable)] _BaseColorMapEnable("BaseColorMap Enable",float) = 1       
         _MainTex ("Base Color, w channel (0.5 - 1.0) save Metallic", 2D) = "white" {}
+
         [Toggle (_NormalMapEnable)] _NormalMapEnable("NormalMap Enable",float) = 1
 		_NormalMap("Normal, z for roughtness,w for ao", 2D) = "black" {}
         [Toggle (_LightMapEnable)] _LightMapEnable("LightMap Enable",float) = 1
@@ -49,15 +50,32 @@
 			ZTest Equal
 
 			HLSLPROGRAM
-            #pragma multi_compile_fwdbase
-            #pragma vertex vert
-            #pragma fragment frag
-            // make fog work
-            #pragma multi_compile_fog
-            #pragma multi_compile __ _BaseColorMapEnable
-            #pragma multi_compile __ _NormalMapEnable
-            #pragma multi_compile __ _LightMapEnable
-            
+
+			// -------------------------------------
+			// Universal Pipeline keywords
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+			#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+			#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+			#pragma multi_compile _ _SHADOWS_SOFT
+			#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+
+			// -------------------------------------
+			// Unity defined keywords
+			#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+			#pragma multi_compile _ LIGHTMAP_ON
+
+			//--------------------------------------
+			// GPU Instancing
+			#pragma multi_compile_instancing
+
+			#pragma shader_feature _ _NormalMapEnable
+			#pragma shader_feature _ _BaseColorMapEnable
+			#pragma shader_feature _ _LightMapEnable
+
+			#pragma vertex vert
+			#pragma fragment frag
+
 			#include "MJH_Common.hlsl"
 
 
@@ -97,7 +115,7 @@
 
 
             #ifdef _BaseColorMapEnable
-                half3 BaseColor = col.xyz * col.xyz * _BaseColor.xyz * _BaseColor.xyz;
+                half3 BaseColor = col.xyz/* * col.xyz * _BaseColor.xyz*/ * _BaseColor.xyz;
                 half Metallic = clamp(col.w * 2.0 - 1, 0, 1) * _Metallic;// BaseColor w channel (0.5 - 1.0) save Metallic
                 half mask = col.w;
             #else
@@ -204,7 +222,7 @@
                 half3 EnvBRDF = EnvBRDFApprox(SpecularColor, roughness, NdotV);
 
                 half3 EnvSpecular = IBL_Specular(roughness, reflectDir.xyz, EnvBRDF,GILighting);
-//return half4(EnvSpecular.xyz,1);
+
                 half3 H = normalize(viewDir + lightDir);
 				half VdotH = clamp(dot(viewDir,H),0,1);
 				half NdotH = clamp(dot(normalVec,H),0,1);
@@ -238,13 +256,16 @@
 				OutColor = ApplySceneFogColor(OutColor, i.worldPos.xyz, viewDir.xyz, VdotL, EnvInfo.z);
 
                 //Linear to Gamma
-				OutColor.xyz = OutColor.xyz / (OutColor.xyz * 0.9661836 + 0.180676);
+				//OutColor.xyz = OutColor.xyz / (OutColor.xyz * 0.9661836 + 0.180676);
 
 				
                 return half4(OutColor.xyz , col.a);
             }
 			ENDHLSL
         }
-        UsePass "MJH/Shadow/ShadowCaster"
-    }
+		UsePass "MJH/Shadow/ShadowCaster"
+		UsePass "MJH/Shadow/DepthOnly"
+
+	}
+	FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }

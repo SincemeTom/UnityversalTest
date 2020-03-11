@@ -13,12 +13,16 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3050
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -73,8 +77,9 @@ Material:
     - EnvStrength: 1
     - NormalMapBias: -0.5
     - PointCloudEnable: 1
+    - _ALPHATEST_ON: 0
     - _BumpScale: 1
-    - _Cutoff: 0.5
+    - _Cutoff: 0.051
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
@@ -99,6 +104,7 @@ Material:
     - FogColor3: {r: 0.5, g: 0.35, b: 0.09500044, a: 0.6937419}
     - FogInfo: {r: 70, g: 0.008, b: -0.003160504, a: 0.3555721}
     - ShadowColor: {r: 0.1122132, g: 0.3493512, b: 0.00003981071, a: 0.5}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EyeColor: {r: 0.1973174, g: 0.1973174, b: 0.1973174, a: 1}

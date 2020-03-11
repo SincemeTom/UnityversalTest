@@ -82,6 +82,9 @@ v2f vert (appdata v)
     o.world_tangent = wTangent; 
     o.world_binormal = wBinormal;
 
+	float4 clipVertex = positionCS / positionCS.w;
+	o.screen_uv = ComputeScreenPos(clipVertex);
+
 #if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
 
 #if SHADOWS_SCREEN
@@ -90,7 +93,7 @@ v2f vert (appdata v)
 	o.shadowCoord =  TransformWorldToShadowCoord(o.worldPos);
 #endif
 #endif
-    o.screen_uv = ComputeScreenPos(positionCS);
+
 
     return o;
 }

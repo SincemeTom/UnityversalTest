@@ -5,7 +5,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
 float3 _LightDirection;
-
 struct Attributes
 {
     float4 positionOS   : POSITION;

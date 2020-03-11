@@ -45,13 +45,34 @@
 			// no LightMode tag are also rendered by Universal Render Pipeline
 			Name "ForwardLit"
 			Tags{"LightMode" = "UniversalForward"}
+
+			ZWrite Off
+			ZTest Equal
+
 			HLSLPROGRAM
-			#pragma multi_compile_fwdbase
-			#pragma multi_compile __ PointCloudEnable
+			#pragma prefer_hlslcc gles
+			#pragma exclude_renderers d3d11_9x
+			#pragma target 2.0
+			// -------------------------------------
+			// Universal Pipeline keywords
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+			#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+			#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+			#pragma multi_compile _ _SHADOWS_SOFT
+			#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+
+			// -------------------------------------
+			// Unity defined keywords
+			#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+			#pragma multi_compile _ LIGHTMAP_ON
+
+			//--------------------------------------
+			// GPU Instancing
+			#pragma multi_compile_instancing
+
 			#pragma vertex vert
 			#pragma fragment frag
-			// make fog work
-			#pragma multi_compile_fog
 			
 			#include "MJH_Common.hlsl"
 
@@ -103,7 +124,7 @@
 				//Color 
                 half SSSMask = 1 - unpackNormal.w;
 				half3 alpha = texBase.a;
-				half3 BaseColor = texBase.rgb * texBase.rgb;
+				half3 BaseColor = texBase.rgb /** texBase.rgb*/;
 				BaseColor = ApplyColorTransform(BaseColor, SSSMask, mask);
 
 
@@ -157,7 +178,7 @@
 				shadow = GetMainLightShadowAttenuation(i.shadowCoord);
 #endif
 				//shadow = shadow * clamp (abs(NdotL) + 2.0 * texM.z * texM.z - 1.0, 0.0, 1.0);
-
+				
 
 				//SunColor
 
@@ -227,9 +248,9 @@
 				Color = ApplyFogColor(Color, i.worldPos.xyz, viewDir.xyz, VdotL, EnvInfo.z);
 
 				//Liner to Gamma
-				Color.xyz = Color.xyz / (Color.xyz * 0.9661836 + 0.180676);
+				//Color.xyz = Color.xyz / (Color.xyz * 0.9661836 + 0.180676);
 
-				return half4 (Color.xyz, texBase.w);
+				return half4 (Color.xyz, 1);
 			}
 			
 			ENDHLSL

@@ -2,8 +2,13 @@
 {
 	Properties
 	{
-		[Toggle (PointCloudEnable)] PointCloudEnable("PointCloudEnable",float) = 0
-		_MainTex ("Base", 2D) = "white" {}
+		[Toggle(_ALPHATEST_ON)] _ALPHATEST_ON("Alpha Test",float) = 0
+		_Cutoff("CutOff", Range(0,1)) = 0.33
+
+		_MainTex("Base", 2D) = "white" {}
+		_BaseMap("Alpha", 2D) = "white"{}
+		_BaseColor("Base Color", Color) = (1, 1, 1, 1)
+
 		BaseMapBias ("BaseMapBias ", Range(-1,1)) = -1
 		_MixTex ("Mix", 2D) = "white" {}
 		_NormalTex ("Normal", 2D) = "normal" {}
@@ -27,7 +32,7 @@
 	}
 	SubShader
 	{
-		Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
+		Tags{"RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
 		LOD 300
 
 			// ------------------------------------------------------------------
@@ -37,18 +42,39 @@
 			// Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
 			// no LightMode tag are also rendered by Universal Render Pipeline
 			Name "ForwardLit"
-			Tags{"LightMode" = "UniversalForward"}
-			Blend SrcAlpha OneMinusSrcAlpha
-			ZTest On
+			Tags{"LightMode" = "UniversalForward" }
 			ZWrite Off
+			ZTest Less
+			BlendOp Add, Max
+			
+			Blend SrcAlpha OneMinusSrcAlpha, One One
 
 			HLSLPROGRAM
-			#pragma multi_compile_fwdbase
-			#pragma multi_compile __ SSS_ENABLE
+			
+			#pragma prefer_hlslcc gles
+			#pragma exclude_renderers d3d11_9x
+			#pragma target 2.0
+			// -------------------------------------
+			// Universal Pipeline keywords
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+			#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+			#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+			#pragma multi_compile _ _SHADOWS_SOFT
+			#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+
+			// -------------------------------------
+			// Unity defined keywords
+			#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+			#pragma multi_compile _ LIGHTMAP_ON
+
+			//--------------------------------------
+			// GPU Instancing
+			#pragma multi_compile_instancing
+
+
 			#pragma vertex vert
 			#pragma fragment frag
-			// make fog work
-			#pragma multi_compile_fog
 			
 			#include "MJH_Common.hlsl"
 		
@@ -97,7 +123,7 @@
 				
 				half AO = texM.z;
 				half SSSMask=0.0;
-				half3 BaseColor = texBase.rgb * texBase.rgb;
+				half3 BaseColor = texBase.rgb /** texBase.rgb*/;
 				
 
 				//Normal
@@ -157,12 +183,11 @@
 				//shadow
 				half shadow = 1;
 
+				//TODO: pcf_skin shadow
 #ifdef _MAIN_LIGHT_SHADOWS
 				shadow = GetMainLightShadowAttenuation(i.shadowCoord);
 #endif
-
-
-
+				
 				//GI :Messiah引擎GI数据还原
 				half4 linearColor = half4(0,0,0,0);
 
@@ -183,7 +208,7 @@
 				half SunlightOffset = lerp(1,userData1.x * 2,SSSMask) * ShadowColor.g;
 				shadow *= SunlightOffset;
 				shadow *= cPointCloudm[0].w;
-				
+				//return half4(shadow.xxx, 1);
 				//Diff lighting
 				half3 diffLighting = half3(0,0,0);
 				GILighting.rgb = lerp(GILighting.rgb,  GILighting.rgb * userData1.y *2 , SSSMask);
@@ -231,7 +256,8 @@
 				//Apply Fog
 				float VdotL = saturate(dot(-viewDir, lightDir));
 				Color = ApplyFogColor(Color, i.worldPos.xyz, viewDir.xyz, VdotL, EnvInfo.z);
-				Color.xyz = Color.xyz / (Color.xyz * 0.9661836 + 0.180676);
+				
+				//Color.xyz = Color.xyz / (Color.xyz * 0.9661836 + 0.180676);
 				//return half4(texBase.www,1);
 				// apply fog
 
@@ -241,5 +267,6 @@
 			ENDHLSL
 		}
 		UsePass "MJH/Shadow/ShadowCaster"
+		//UsePass "MJH/Shadow/DepthOnly"
 	}
 }

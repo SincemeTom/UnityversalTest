@@ -4,6 +4,7 @@
 	{
 		[Toggle (PointCloudEnable)] PointCloudEnable("PointCloudEnable",float) = 0
 		_MainTex ("Base", 2D) = "white" {}
+		_BaseColor("Base Color", Color) = (1, 1, 1, 1)
 		BaseMapBias ("BaseMapBias ", Range(-1,1)) = -1
 
 		_MaskMap("Mix AO", 2D) = "black"{}
@@ -23,7 +24,7 @@
 	}
 	SubShader
 	{
-		Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
+		Tags{"RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
 		LOD 300
 
 			// ------------------------------------------------------------------
@@ -33,26 +34,47 @@
 			// Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
 			// no LightMode tag are also rendered by Universal Render Pipeline
 			Name "ForwardLit"
-			Tags{"LightMode" = "UniversalForward"}
-			ZWrite Off
-			ZTest Equal
+			Tags{"LightMode" = "UniversalForward" }
+			ZWrite On
+			ZTest LEqual
+
+			Blend One Zero
 
 			HLSLPROGRAM
-			#pragma multi_compile_fwdbase
-			#pragma multi_compile __ PointCloudEnable
+			// -------------------------------------
+			// Universal Pipeline keywords
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+			#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+			#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+			#pragma multi_compile _ _SHADOWS_SOFT
+			#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+
+			// -------------------------------------
+			// Unity defined keywords
+			#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+			#pragma multi_compile _ LIGHTMAP_ON
+
+			//--------------------------------------
+			// GPU Instancing
+			#pragma multi_compile_instancing
+
+			//--------------------------------------
+			// OPAQUE_TEXTURE
+			#pragma multi_compile _ REQUIRE_OPAQUE_TEXTURE
+			
 			#pragma vertex vert
 			#pragma fragment frag
-			// make fog work
-			#pragma multi_compile_fog
-			
 
 			#include "MJH_Common.hlsl"
-
+			//#if defined(REQUIRE_OPAQUE_TEXTURE)
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
+			//#endif
 
 			sampler2D _NormalTex;
 			sampler2D _MaskMap;
 
-			sampler2D _BackgroundTexture;
+			//sampler2D _BackgroundTexture;
 
 			half AliasingFactor;
 			half _Roughness;
@@ -84,9 +106,11 @@
 				half3 userData1 = half3(0.5,0.5,0.5);
 				// sample the texture
 				half4 texBase = tex2Dbias (_MainTex, half4(i.uv.xy, 0, BaseMapBias));
+				
+				//half4 sceneColor = tex2Dproj(_BackgroundTexture, i.screen_uv);
 
-				half4 sceneColor = tex2Dproj(_BackgroundTexture, i.screen_uv);
-
+				half3 sceneColor = SampleSceneColor(i.screen_uv.xy);
+				
 				//Sample Mix texture
 				half4 texMask = tex2D(_MaskMap, i.uv.xy);
 				float refAlpha = texMask.a;
@@ -97,7 +121,7 @@
 				float roughness = _Roughness;
 
 				//Color 
-				half3 BaseColor = texBase.rgb * texBase.rgb * texBase.a;
+				half3 BaseColor =/* texBase.rgb **/ texBase.rgb * texBase.a;
 				half3 DiffuseColor = BaseColor / 3.141593;
 				float3 SpecularColor=float3(0.04,0.04,0.04);
 
@@ -172,10 +196,11 @@
 				Specular += LightingPS_SPEC(i.worldPos.xyz, normalVec, viewDir, NdotV, EnvBRDF * 2,saturate(roughness),lighting.rgb);
 				float3 FinalColor = Specular + lighting * DiffuseColor.rgb;
 
+				
 				//Blend
 				float3 sceneColor2 = sceneColor.xyz;
 				sceneColor.xyz *=  (1 - texBase.a);
-
+				
 				sceneColor.xyz += FinalColor;
 				sceneColor.xyz *= AO;
 
@@ -188,7 +213,7 @@
 
 				//Liner to Gamma
 
-				Color.xyz = Color.xyz / (Color.xyz * 0.9661836 + 0.180676);
+				//Color.xyz = Color.xyz / (Color.xyz * 0.9661836 + 0.180676);
 
 				return half4 (Color.xyz, texBase.w);
 			}
@@ -197,4 +222,5 @@
 		}
 		//UsePass "MJH/Shadow/ShadowCaster"
 	}
+	FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }

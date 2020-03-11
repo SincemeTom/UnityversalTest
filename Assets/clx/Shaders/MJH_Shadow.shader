@@ -49,7 +49,7 @@
 			Tags{"LightMode" = "ShadowCaster"}
 
 			ZWrite On
-			ZTest LEqual
+			ZTest Less
 			Cull Back
 
 			HLSLPROGRAM
@@ -79,8 +79,10 @@
 			Name "DepthOnly"
 			Tags{"LightMode" = "DepthOnly"}
 
+
 			ZWrite On
-			ColorMask 0
+			ZTest Less
+			//ColorMask 0
 			Cull Back
 
 				HLSLPROGRAM

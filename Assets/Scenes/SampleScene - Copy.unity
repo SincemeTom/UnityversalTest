@@ -192,6 +192,10 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 953a9bd8207d3b34bb1c9c2ebcfc283c, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 953a9bd8207d3b34bb1c9c2ebcfc283c, type: 3}
 --- !u!1001 &154722255
@@ -265,6 +269,10 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 885ba47647170ff429a114c187c9c699, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 885ba47647170ff429a114c187c9c699, type: 3}
 --- !u!1 &170076733
@@ -335,7 +343,7 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
@@ -869,7 +877,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2300000, guid: 4fc3de386c4201744821f49397c60fc4, type: 3}
       propertyPath: m_RenderingLayerMask
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4fc3de386c4201744821f49397c60fc4, type: 3}
@@ -942,6 +950,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 634a25eb9b218654a8ee1b8b0836179d, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 634a25eb9b218654a8ee1b8b0836179d, type: 3}
 --- !u!1001 &933963953
@@ -1006,6 +1018,10 @@ PrefabInstance:
     - target: {fileID: 2300000, guid: 7efc569eff63dff4599903bc17e875a8, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 7efc569eff63dff4599903bc17e875a8, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7efc569eff63dff4599903bc17e875a8, type: 3}
@@ -1107,7 +1123,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1057386968
 Transform:
   m_ObjectHideFlags: 0
@@ -1237,15 +1253,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: d572f6da369146a429bb00079b358355, type: 3}
       propertyPath: m_LocalScale.x
-      value: 500
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: d572f6da369146a429bb00079b358355, type: 3}
       propertyPath: m_LocalScale.y
-      value: 500
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: d572f6da369146a429bb00079b358355, type: 3}
       propertyPath: m_LocalScale.z
-      value: 500
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 2300000, guid: d572f6da369146a429bb00079b358355, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -1257,7 +1273,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2300000, guid: d572f6da369146a429bb00079b358355, type: 3}
       propertyPath: m_RenderingLayerMask
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d572f6da369146a429bb00079b358355, type: 3}
@@ -1436,6 +1452,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 6a25653dcfa2e73479561d42840fee41, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a25653dcfa2e73479561d42840fee41, type: 3}
 --- !u!4 &1621705261 stripped
@@ -1507,6 +1527,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 3cc2cecbce6c7c04bb049c8fc2017dbf, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3cc2cecbce6c7c04bb049c8fc2017dbf, type: 3}
 --- !u!1001 &1739709721
@@ -1571,6 +1595,10 @@ PrefabInstance:
     - target: {fileID: 2300000, guid: 501a20c1039f3f544ad530f5d2f5b2ce, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 501a20c1039f3f544ad530f5d2f5b2ce, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 501a20c1039f3f544ad530f5d2f5b2ce, type: 3}
@@ -1682,10 +1710,10 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2115140283}
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: -12.4, y: 15.657332, z: 13.5}
-  m_LocalScale: {x: 0.8333335, y: 0.8333333, z: 0.8333335}
+  m_LocalRotation: {x: -0, y: 0.99998975, z: -0, w: -0.004537886}
+  m_LocalPosition: {x: 0.00008817247, y: 0.017096665, z: 0.0114776725}
+  m_LocalScale: {x: 0.0016666667, y: 0.0016666667, z: 0.0016666667}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_Father: {fileID: 1324552052}
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}

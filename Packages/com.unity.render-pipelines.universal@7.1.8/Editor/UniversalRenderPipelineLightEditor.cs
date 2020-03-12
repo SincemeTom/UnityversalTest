@@ -2,6 +2,7 @@ using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
+using System;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -32,6 +33,8 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent ShadowNearPlane = EditorGUIUtility.TrTextContent("Near Plane", "Controls the value for the near clip plane when rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
 
             public static GUIContent shadowBias = EditorGUIUtility.TrTextContent("Bias", "Select if the Bias should use the settings from the Pipeline Asset or Custom settings.");
+
+            public static GUIContent renderingLayerMaskContent = EditorGUIUtility.TrTextContent("RenderingLayerMask", "RenderingLayerMask.");
             public static int[] optionDefaultValues = { 0, 1 };
 
             public static GUIContent[] displayedDefaultOptions =
@@ -39,6 +42,8 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Custom"),
                 new GUIContent("Use Pipeline Settings")
             };
+
+            public readonly GUIContent layerMaskContent = new GUIContent("Rendering layer Mask", "Rendering layer Mask");
         }
 
         static Styles s_Styles;
@@ -143,7 +148,7 @@ namespace UnityEditor.Rendering.Universal
                         settings.DrawLightmapping();
                     }
                 }
-
+            
             settings.DrawIntensity();
 
             using (var group = new EditorGUILayout.FadeGroupScope(m_AnimLightBounceIntensity.faded))
@@ -154,6 +159,19 @@ namespace UnityEditor.Rendering.Universal
 
             settings.DrawRenderMode();
             settings.DrawCullingMask();
+            Light cLight = target as Light;
+
+            int lightLayer = cLight.renderingLayerMask;
+
+            string[] names = Enum.GetNames(typeof(RenderingLayerMask));
+            EditorGUI.BeginChangeCheck();
+            lightLayer = EditorGUILayout.MaskField(s_Styles.layerMaskContent, lightLayer, names);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                cLight.renderingLayerMask = lightLayer;
+                Debug.Log(cLight.renderingLayerMask);
+            }
 
             EditorGUILayout.Space();
 

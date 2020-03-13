@@ -114,8 +114,8 @@
 				
 				//Sample Mix texture
 				half4 texMask = tex2D(_MaskMap, i.uv.xy);
-				float refAlpha = texMask.a;
-				float AO = texMask.r;
+				float refAlpha = (texMask.a);
+				float AO = (texMask.g);
 				float refmask = texMask.g;
 
 				//Parameters
@@ -202,7 +202,7 @@
 				sceneColor.xyz *=  (1 - texBase.a);
 				
 				sceneColor.xyz += FinalColor;
-				sceneColor.xyz *= AO;
+				sceneColor.xyz *=  1 - pow((1 - AO), _AOIntensity);
 
 				float3 Color = sceneColor.xyz;
 				//Final Color
@@ -215,7 +215,7 @@
 
 				//Color.xyz = Color.xyz / (Color.xyz * 0.9661836 + 0.180676);
 
-				return half4 (Color.xyz, texBase.w);
+				return half4 (Color.xyz, 1);
 			}
 			
 			ENDHLSL

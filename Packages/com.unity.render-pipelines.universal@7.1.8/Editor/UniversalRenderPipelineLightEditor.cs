@@ -34,7 +34,6 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent shadowBias = EditorGUIUtility.TrTextContent("Bias", "Select if the Bias should use the settings from the Pipeline Asset or Custom settings.");
 
-            public static GUIContent renderingLayerMaskContent = EditorGUIUtility.TrTextContent("RenderingLayerMask", "RenderingLayerMask.");
             public static int[] optionDefaultValues = { 0, 1 };
 
             public static GUIContent[] displayedDefaultOptions =

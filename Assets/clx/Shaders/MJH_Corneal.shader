@@ -8,6 +8,7 @@
 		BaseMapBias ("BaseMapBias ", Range(-1,1)) = -1
 
 		_MaskMap("Mix AO", 2D) = "black"{}
+		_AOIntensity("AO Strength", Range(0,2)) = 0.5 
 		_NormalTex ("Normal", 2D) = "normal" {}
 		NormalMapBias ("NormalMapBias ", Range(-1,1)) = -0.5
 		_EnvMap ("Reflect", 2D) = "black" {}
@@ -84,7 +85,7 @@
 			half4 cVirtualLitColor;
 
 			float cVirtualColorScale;
-			
+			float _AOIntensity;
 
 
 
@@ -198,7 +199,6 @@
 
 				
 				//Blend
-				float3 sceneColor2 = sceneColor.xyz;
 				sceneColor.xyz *=  (1 - texBase.a);
 				
 				sceneColor.xyz += FinalColor;

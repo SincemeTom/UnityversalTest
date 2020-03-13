@@ -99,9 +99,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 bool bEnableCharacterShadow = RenderCharacterShadowmap(context, cmd, ref renderingData);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.CharacterShadowStr, bEnableCharacterShadow);
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
 
 
         }
@@ -154,11 +154,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!renderShadow) return false;
 
 
-
-            using (new ProfilingSample(cmd, m_ProfilerTag)) {
+            //using (new ProfilingSample(cmd, m_ProfilerTag))
+            {
                 //Culling
                 ScriptableCullingParameters cullingParams;
-                if (!camera.TryGetCullingParameters(out cullingParams)) {
+                if (!camera.TryGetCullingParameters(out cullingParams))
+                {
                     return false;
                 }
                 cullingParams.isOrthographic = true;
@@ -167,7 +168,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cullingParams.cullingOptions = CullingOptions.OcclusionCull;
                 Plane[] planes = GeometryUtility.CalculateFrustumPlanes(cullingParams.cullingMatrix);
                 cullingParams.cullingPlaneCount = 6;
-                for (int i = 0; i < planes.Length; ++i) {
+                for (int i = 0; i < planes.Length; ++i)
+                {
                     cullingParams.SetCullingPlane(i, planes[i]);
                 }
                 m_CharacterShadowCullResult = context.Cull(ref cullingParams);
@@ -175,10 +177,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 float frusumSize = 2.0f / characterShadow.ProjMatrix.m00;
                 const float kernelRadius = 2.5f;
-                float m_texelSize = frusumSize / Mathf.Min(m_ShadowmapWidth,m_ShadowmapHeight);
+                float m_texelSize = frusumSize / Mathf.Min(m_ShadowmapWidth, m_ShadowmapHeight);
                 float m_depthBias = characterShadow.bias;
                 float m_normalBias = characterShadow.normalBias;
-                if (light.shadows == LightShadows.Soft) {
+                if (light.shadows == LightShadows.Soft)
+                {
                     m_depthBias *= kernelRadius;
                     m_normalBias *= kernelRadius;
                 }
@@ -187,14 +190,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector("_ShadowBias", new Vector4(m_depthBias, m_normalBias, m_texelSize * 1.4142135623730950488016887242097f, 0.0f));
                 cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
 
-                CoreUtils.SetRenderTarget(cmd, m_CharacterShadowmapTexture, ClearFlag.Depth);
+                //CoreUtils.SetRenderTarget(cmd, m_CharacterShadowmapTexture, ClearFlag.Depth);
 
-                
+
                 Utilities.SetViewProjectionMatrices(cmd, characterShadow.ViewMatrix, characterShadow.ProjMatrix);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                
-                
+
+
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
 

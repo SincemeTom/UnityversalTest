@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
                 //Character Shadow Layer Mask
-                settings.useRenderingLayerMaskTest = true;              
+                settings.useRenderingLayerMaskTest = shadowData.supportsCharacterShadows;              
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {

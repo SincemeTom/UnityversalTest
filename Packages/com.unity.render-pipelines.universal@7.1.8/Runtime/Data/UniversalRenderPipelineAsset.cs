@@ -130,8 +130,9 @@ namespace UnityEngine.Rendering.Universal
         // Main directional light Settings
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
         [SerializeField] bool m_MainLightShadowsSupported = true;
+        [SerializeField] bool m_CharacterShadowsSupported = true;
         [SerializeField] ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
-
+        [SerializeField] ShadowResolution m_CharacterShadowmapResolution = ShadowResolution._1024;
         // Additional lights settings
         [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
         [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
@@ -490,9 +491,18 @@ namespace UnityEngine.Rendering.Universal
             get { return m_MainLightShadowsSupported; }
         }
 
+        public bool supportsCharacterShadows
+        {
+            get { return m_CharacterShadowsSupported; }
+        }
+
         public int mainLightShadowmapResolution
         {
             get { return (int)m_MainLightShadowmapResolution; }
+        }
+        public int characterShadowmapResolution
+        {
+            get { return (int)m_CharacterShadowmapResolution; }
         }
 
         public LightRenderingMode additionalLightsRenderingMode

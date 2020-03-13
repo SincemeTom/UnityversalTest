@@ -420,7 +420,7 @@ namespace UnityEngine.Rendering.Universal
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && settings.supportsMainLightShadows && mainLightCastShadows;
-
+            shadowData.supportsCharacterShadows = SystemInfo.supportsShadows && settings.supportsMainLightShadows && mainLightCastShadows && settings.supportsCharacterShadows;
             // we resolve shadows in screenspace when cascades are enabled to save ALU as computing cascade index + shadowCoord on fragment is expensive
             shadowData.requiresScreenSpaceShadowResolve = shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.shadowCascadeOption != ShadowCascadesOption.NoCascades;
 
@@ -443,7 +443,8 @@ namespace UnityEngine.Rendering.Universal
             shadowData.mainLightShadowCascadesCount = (shadowData.requiresScreenSpaceShadowResolve) ? shadowCascadesCount : 1;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = settings.mainLightShadowmapResolution;
-
+            shadowData.characterShadowmapWidth = settings.characterShadowmapResolution;
+            shadowData.characterShadowmapHeight = settings.characterShadowmapResolution;
             switch (shadowData.mainLightShadowCascadesCount)
             {
                 case 1:

@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
         ColorGradingLutPass m_ColorGradingLutPass;
         CopyDepthPass m_CopyDepthPass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
+        CharacterShadowCasterPass m_CharacterShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
@@ -62,6 +63,7 @@ namespace UnityEngine.Rendering.Universal
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_CharacterShadowCasterPass = new CharacterShadowCasterPass(RenderPassEvent.BeforeRenderingCharacterShadows, data.characterShadowLayerMask);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, screenspaceShadowsMaterial);
@@ -96,6 +98,7 @@ namespace UnityEngine.Rendering.Universal
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
+            CharacterShadow characterShadow = CharacterShadow.CurrentCharacterShadow;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
@@ -115,6 +118,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
+            bool characterShadows = m_CharacterShadowCasterPass.Setup(ref renderingData,characterShadow);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
 
@@ -167,6 +171,9 @@ namespace UnityEngine.Rendering.Universal
                     activeRenderPassQueue.RemoveAt(i);
             }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+
+            if (characterShadows)
+                EnqueuePass(m_CharacterShadowCasterPass);
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);

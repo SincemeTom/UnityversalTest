@@ -74,9 +74,13 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
     {
         public bool supportsMainLightShadows;
+        public bool supportsCharacterShadows;
         public bool requiresScreenSpaceShadowResolve;
         public int mainLightShadowmapWidth;
         public int mainLightShadowmapHeight;
+        public int characterShadowmapWidth;
+        public int characterShadowmapHeight;
+
         public int mainLightShadowCascadesCount;
         public Vector3 mainLightShadowCascadesSplit;
         public bool supportsAdditionalLightShadows;
@@ -102,6 +106,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE";
+
+        //CharacterShadow
+        public static readonly string CharacterShadowStr = "_CHARACTER_SHADOW";
 
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";

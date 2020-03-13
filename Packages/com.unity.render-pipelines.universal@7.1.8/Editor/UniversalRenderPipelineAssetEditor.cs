@@ -41,6 +41,11 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsMainLightShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "If enabled the main light can be a shadow casting light.");
             public static GUIContent mainLightShadowmapResolutionText = EditorGUIUtility.TrTextContent("Shadow Resolution", "Resolution of the main light shadowmap texture. If cascades are enabled, cascades will be packed into an atlas and this setting controls the maximum shadows atlas resolution.");
 
+            //Character Shadow
+            public static GUIContent supportsCharacterShadowsText = EditorGUIUtility.TrTextContent("Character Shadows Caster", "If enabled the main light can cast a character shadow.");
+            public static GUIContent characterShadowmapResolutionText = EditorGUIUtility.TrTextContent("Character Shadow Resolution", "Resolution of the main light Character shadowmap texture. If cascades are enabled, cascades will be packed into an atlas and this setting controls the maximum shadows atlas resolution.");
+
+
             // Additional lights
             public static GUIContent addditionalLightsRenderingModeText = EditorGUIUtility.TrTextContent("Additional Lights", "Additional lights support.");
             public static GUIContent perObjectLimit = EditorGUIUtility.TrTextContent("Per Object Limit", "Maximum amount of additional lights. These lights are sorted and culled per-object.");
@@ -108,6 +113,9 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_MainLightShadowsSupportedProp;
         SerializedProperty m_MainLightShadowmapResolutionProp;
 
+        SerializedProperty m_CharacterShadowsSupportedProp;
+        SerializedProperty m_CharacterShadowmapResolutionProp;
+
         SerializedProperty m_AdditionalLightsRenderingModeProp;
         SerializedProperty m_AdditionalLightsPerObjectLimitProp;
         SerializedProperty m_AdditionalLightShadowsSupportedProp;
@@ -174,6 +182,9 @@ namespace UnityEditor.Rendering.Universal
             m_MainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             m_MainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
             m_MainLightShadowmapResolutionProp = serializedObject.FindProperty("m_MainLightShadowmapResolution");
+            m_CharacterShadowsSupportedProp = serializedObject.FindProperty("m_CharacterShadowsSupported");
+            m_CharacterShadowmapResolutionProp = serializedObject.FindProperty("m_CharacterShadowmapResolution");
+
 
             m_AdditionalLightsRenderingModeProp = serializedObject.FindProperty("m_AdditionalLightsRenderingMode");
             m_AdditionalLightsPerObjectLimitProp = serializedObject.FindProperty("m_AdditionalLightsPerObjectLimit");
@@ -277,6 +288,14 @@ namespace UnityEditor.Rendering.Universal
                 disableGroup |= !m_MainLightShadowsSupportedProp.boolValue;
                 EditorGUI.BeginDisabledGroup(disableGroup);
                 EditorGUILayout.PropertyField(m_MainLightShadowmapResolutionProp, Styles.mainLightShadowmapResolutionText);
+                EditorGUI.EndDisabledGroup();
+
+                EditorGUI.BeginDisabledGroup(disableGroup);
+                EditorGUILayout.PropertyField(m_CharacterShadowsSupportedProp, Styles.supportsCharacterShadowsText);
+                EditorGUI.EndDisabledGroup();
+
+                EditorGUI.BeginDisabledGroup(disableGroup |=  !m_CharacterShadowsSupportedProp.boolValue);
+                EditorGUILayout.PropertyField(m_CharacterShadowmapResolutionProp, Styles.characterShadowmapResolutionText);
                 EditorGUI.EndDisabledGroup();
 
                 EditorGUI.indentLevel--;

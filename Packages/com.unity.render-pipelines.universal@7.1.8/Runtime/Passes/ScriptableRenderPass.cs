@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RenderPassEvent
     {
         BeforeRendering = 0,
+        BeforeRenderingCharacterShadows = 50,
         BeforeRenderingShadows = 50,
         AfterRenderingShadows = 100,
         BeforeRenderingPrepasses = 150,

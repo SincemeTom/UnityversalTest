@@ -8,13 +8,13 @@
 		BaseMapBias ("BaseMapBias ", Range(-1,1)) = -1
 
 		_MaskMap("Mix AO", 2D) = "black"{}
-		_AOIntensity("AO Strength", Range(0,2)) = 0.5 
+		_AOIntensity("AO Strength", Range(0,10)) = 0.5 
 		_NormalTex ("Normal", 2D) = "normal" {}
 		NormalMapBias ("NormalMapBias ", Range(-1,1)) = -0.5
 		_EnvMap ("Reflect", 2D) = "black" {}
 		_Roughness("_Roughness", Range(0, 1)) = 0.5
 		AliasingFactor ("AliasingFactor", Range(0,1)) = 0.2
-		EnvStrength ("EnvStrength", Range(0,10)) = 1
+		EnvStrength ("EnvStrength", Range(0,2)) = 1
 		ShadowColor ("ShadowColor", Vector) = (0.1122132,0.3493512,0.00003981071,0.5)
 
 		EnvInfo ("EnvInfo", Vector) = (0,0.01,1,2.5)

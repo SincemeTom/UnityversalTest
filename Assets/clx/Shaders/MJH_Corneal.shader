@@ -61,6 +61,10 @@
 			#pragma multi_compile_instancing
 
 			//--------------------------------------
+			//Character Shadow
+			#pragma multi_compile _ _CHARACTER_SHADOW
+
+			//--------------------------------------
 			// OPAQUE_TEXTURE
 			#pragma multi_compile _ REQUIRE_OPAQUE_TEXTURE
 			
@@ -151,9 +155,8 @@
 				half shadow = 1;
 
 #ifdef _MAIN_LIGHT_SHADOWS
-				shadow = GetMainLightShadowAttenuation(i.shadowCoord);
+				shadow = GetMainLightShadowAttenuation(i.shadowCoord, i.worldPos.xyz);
 #endif
-
 
 
 				//GI :Messiah引擎GI数据还原

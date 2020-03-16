@@ -68,6 +68,10 @@
 			#pragma multi_compile _ LIGHTMAP_ON
 
 			//--------------------------------------
+			//Character Shadow
+			#pragma multi_compile _ _CHARACTER_SHADOW
+
+			//--------------------------------------
 			// GPU Instancing
 			#pragma multi_compile_instancing
 
@@ -144,7 +148,7 @@
 
 
 				//Light & View Vector
-				half3 lightDir = normalize(_WorldSpaceLightPos0.www*(-i.worldPos) + _WorldSpaceLightPos0.xyz);
+				half3 lightDir = normalize(_WorldSpaceLightPos0.www *(-i.worldPos.xyz) + _WorldSpaceLightPos0.xyz);
 				half3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos.xyz));
 
 
@@ -175,10 +179,10 @@
 				half shadow = 1;
 
 #ifdef _MAIN_LIGHT_SHADOWS
-				shadow = GetMainLightShadowAttenuation(i.shadowCoord);
+				shadow = GetMainLightShadowAttenuation(i.shadowCoord, i.worldPos.xyz);
 #endif
 				//shadow = shadow * clamp (abs(NdotL) + 2.0 * texM.z * texM.z - 1.0, 0.0, 1.0);
-				
+		
 
 				//SunColor
 

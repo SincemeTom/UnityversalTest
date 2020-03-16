@@ -69,6 +69,10 @@
 			#pragma multi_compile _ LIGHTMAP_ON
 
 			//--------------------------------------
+			//Character Shadow
+			#pragma multi_compile _ _CHARACTER_SHADOW
+
+			//--------------------------------------
 			// GPU Instancing
 			#pragma multi_compile_instancing
 
@@ -165,9 +169,9 @@
 				half shadow = 1;
 
 #ifdef _MAIN_LIGHT_SHADOWS
-				shadow = GetMainLightShadowAttenuation(i.shadowCoord);
+				shadow = GetMainLightShadowAttenuation(i.shadowCoord, i.worldPos.xyz);
 #endif
-				
+
 				//GI :Messiah引擎GI数据还原
 				half4 linearColor = half4(0,0,0,0);
 

@@ -163,7 +163,7 @@
 				half shadow = 1;
 
 #ifdef _MAIN_LIGHT_SHADOWS
-				shadow = GetMainLightShadowAttenuation(i.shadowCoord);
+				shadow = GetMainLightShadowAttenuation(i.shadowCoord, i.worldPos.xyz);
 #endif
 
 

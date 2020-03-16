@@ -89,7 +89,7 @@ Material:
     - PointCloudEnable: 1
     - _ALPHATEST_ON: 1
     - _BumpScale: 1
-    - _Cutoff: 0.37
+    - _Cutoff: 0.33
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1

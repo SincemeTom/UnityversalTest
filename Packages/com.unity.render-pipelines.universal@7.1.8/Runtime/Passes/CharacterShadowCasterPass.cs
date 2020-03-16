@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CharacterShadowConstantBuffer._CharacterShadowmapSize = Shader.PropertyToID("_CharacterShadowmapSize");
             CharacterShadowConstantBuffer._CharacterShadowFilterWidth = Shader.PropertyToID("_CharacterShadowFilterWidth");
 
-            m_CharacterShadowmap.Init("_MainLightShadowmapTexture");
+            m_CharacterShadowmap.Init("_CharacterShadowMap");
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -174,12 +174,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 m_CharacterShadowCullResult = context.Cull(ref cullingParams);
 
-
+                
                 float frusumSize = 2.0f / characterShadow.ProjMatrix.m00;
                 const float kernelRadius = 2.5f;
                 float m_texelSize = frusumSize / Mathf.Min(m_ShadowmapWidth, m_ShadowmapHeight);
-                float m_depthBias = characterShadow.bias;
-                float m_normalBias = characterShadow.normalBias;
+                float m_depthBias =  -characterShadow.bias * m_texelSize;
+                float m_normalBias = -characterShadow.normalBias * m_texelSize;
                 if (light.shadows == LightShadows.Soft)
                 {
                     m_depthBias *= kernelRadius;

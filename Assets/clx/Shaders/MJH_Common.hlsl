@@ -3,6 +3,7 @@
 
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Runtime/RendererFeatures/CharacterShadow/DeclareCharaterShadowMapTexture.hlsl"
 
 #define _WorldSpaceLightPos0 _MainLightPosition
 #define _LightColor0 _MainLightColor
@@ -13,7 +14,7 @@ float4 GetShadowCoordScreen(float4 PositionCS)
 
 float4 GetShadowCoord(float4 PositionWS)
 {
-	return TransformWorldToShadowCoord(PositionWS);
+	return TransformWorldToShadowCoord(PositionWS.xyz);
 }
 
 float3 UnityWorldSpaceViewDir(float3 worldPos)
@@ -59,7 +60,7 @@ v2f vert (appdata v)
 {
     v2f o = (v2f)0;
 
-	float3 positionWS = TransformObjectToWorld(v.vertex);
+	float3 positionWS = TransformObjectToWorld(v.vertex.xyz).xyz;
 	float4 positionCS = TransformWorldToHClip(positionWS.xyz);
 
     o.pos = positionCS;
@@ -119,8 +120,8 @@ float3 ApplyColorTransform(float3 InBaseColor, float SSSMask, float mask)
     float3 baseColorData = InBaseColor;
     //ColorTransform
     float3 BaseColor = InBaseColor;
-    BaseColor = lerp(BaseColor,saturate(half3(dot(_ColorTransform0,baseColorData),dot(_ColorTransform1,baseColorData),dot(_ColorTransform2,baseColorData))),mask);
-    BaseColor = lerp(BaseColor,saturate(half3(dot(_ColorTransform3,baseColorData),dot(_ColorTransform4,baseColorData),dot(_ColorTransform5,baseColorData))),SSSMask);
+    BaseColor = lerp(BaseColor,saturate(half3(dot(_ColorTransform0.xyz,baseColorData),dot(_ColorTransform1.xyz,baseColorData),dot(_ColorTransform2.xyz,baseColorData))),mask);
+    BaseColor = lerp(BaseColor,saturate(half3(dot(_ColorTransform3.xyz,baseColorData),dot(_ColorTransform4.xyz,baseColorData),dot(_ColorTransform5.xyz,baseColorData))),SSSMask);
     return BaseColor;
 }
 
@@ -275,7 +276,7 @@ half3 Sun_Specular(in float3 L,in float3 N, in float3 V, in half Roughness,in fl
     return sunSpec;
 }
 
-float CrystalBRDF(in float Roughness,in float3 L,in float3 V,in float3 N,in float3 SpecularColor )
+float3 CrystalBRDF(in float Roughness,in float3 L,in float3 V,in float3 N,in float3 SpecularColor )
 {
     float3 H = normalize(L+V);
     float NoH = saturate(dot(N,H));
@@ -431,7 +432,7 @@ float3 ApplyFogColor(float3 Color, float3 WorldPos, float3 V,float VoL, float Fo
     float tmp = saturate(WorldPos.y * FogInfo.z + FogInfo.w);
     float fHeightCoef = tmp * tmp;
     fHeightCoef *= fHeightCoef;
-    float fog = 1.0 - exp(-max (0.0, V - FogInfo.x)* max (FogInfo.y * fHeightCoef, 0.1 * FogInfo.y));
+    float fog = 1.0 - exp(-max (0.0, length(V) - FogInfo.x) * max(FogInfo.y * fHeightCoef, 0.1 * FogInfo.y));
 
     float3 fogColor = FogColor2.xyz * saturate(V.y * 5.0 + 1.0) + FogColor.xyz;
     fogColor += FogColor3.rgb * VoL * VoL;
@@ -452,7 +453,7 @@ float3 ApplySceneFogColor(float3 Color, float3 WorldPos, float3 V,float VoL, flo
     float tmp = saturate(WorldPos.y * FogInfo.z + FogInfo.w);
     float fHeightCoef = tmp * tmp;
     fHeightCoef *= fHeightCoef;
-    float fog = 1.0 - exp(-max (0.0, V - FogInfo.x)* max (FogInfo.y * fHeightCoef, 0.1 * FogInfo.y));
+    float fog = 1.0 - exp(-max (0.0, length(V) - FogInfo.x)* max (FogInfo.y * fHeightCoef, 0.1 * FogInfo.y));
 
     float3 fogColor = FogColor2.xyz * saturate(V.y * 5.0 + 1.0) + FogColor.xyz;
     fogColor += FogColor3.rgb * VoL * VoL;
@@ -464,10 +465,17 @@ float3 ApplySceneFogColor(float3 Color, float3 WorldPos, float3 V,float VoL, flo
     return col; 
 }
 
-half GetMainLightShadowAttenuation(float4 shadowCoord)
+half GetMainLightShadowAttenuation(float4 shadowCoord, float3 worldPos)
 {
+	half shadow = 1;
 	Light mainLight = GetMainLight(shadowCoord);
-	return mainLight.shadowAttenuation;
+	shadow = mainLight.shadowAttenuation;
+#ifdef _CHARACTER_SHADOW			
+	half cShadow = GetCharacterShadow(worldPos);
+	shadow = min(shadow, cShadow);
+#endif
+
+	return shadow;
 }
 			
 #endif

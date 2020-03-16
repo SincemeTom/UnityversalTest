@@ -72,6 +72,9 @@
 			// GPU Instancing
 			#pragma multi_compile_instancing
 
+			//--------------------------------------
+			//Character Shadow
+			#pragma multi_compile _ _CHARACTER_SHADOW
 
 			#pragma vertex vert
 			#pragma fragment frag
@@ -185,9 +188,8 @@
 
 				//TODO: pcf_skin shadow
 #ifdef _MAIN_LIGHT_SHADOWS
-				shadow = GetMainLightShadowAttenuation(i.shadowCoord);
-#endif
-				
+				shadow = GetMainLightShadowAttenuation(i.shadowCoord, i.worldPos.xyz);
+#endif			
 				//GI :Messiah引擎GI数据还原
 				half4 linearColor = half4(0,0,0,0);
 

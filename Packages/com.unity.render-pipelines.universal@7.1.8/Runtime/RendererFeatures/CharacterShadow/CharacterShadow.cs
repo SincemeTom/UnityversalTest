@@ -5,31 +5,8 @@ using UnityEngine;
 namespace UnityEngine.Rendering.Universal.Internal
 {
     [ExecuteInEditMode]
-    public class CharacterShadow : MonoBehaviour {
-
-        public delegate void OnNewScene(CharacterShadow characterShadow);
-        public static event OnNewScene handlerOnNewScene;
-
-        public static CharacterShadow m_CurrentCharacterShadow;
-        public static CharacterShadow CurrentCharacterShadow
-        {
-            get { return m_CurrentCharacterShadow; }
-            set
-            {
-                m_CurrentCharacterShadow = value;
-                if (handlerOnNewScene != null)
-                    handlerOnNewScene(m_CurrentCharacterShadow);
-            }
-        }
-        void OnEnable()
-        {
-            CurrentCharacterShadow = this;
-        }
-        void OnDisable()
-        {
-            CurrentCharacterShadow = null;
-        }
-
+    public class CharacterShadow : MonoBehaviour
+    {
         public bool autoFocus;
         public float autoFocusRadiusBias;
         public Transform target;
@@ -38,9 +15,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         public float radius = 1f;
         [Min(0f)]
         public float near = 0.0f;
+        [Min(0.1f)]
+        public float far = 2.0f;
         public float fallbackFilterWidth = 2f;
-        public float bias = 0.0f;
-        public float normalBias = 0.0f;
+        public float bias = 1.0f;
+        public float normalBias = 1.0f;
 
         public Light MainLight;
         private Matrix4x4 m_viewMatrix;
@@ -84,7 +63,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_cameraCenter = targetPos - lightDir * radius;
             m_viewMatrix = GeometryUtils.CalculateWorldToCameraMatrixRHS(m_cameraCenter, lightOri);
-            m_projMatrix = Matrix4x4.Ortho(-radius, radius, -radius, radius, near, radius * 2f);
+            m_projMatrix = Matrix4x4.Ortho(-radius, radius, -radius, radius, near, far);
 
             m_shadowMatrix = GetShadowTransform(m_projMatrix, m_viewMatrix, 0);
             return true;

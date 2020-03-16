@@ -69,6 +69,10 @@
             // GPU Instancing
             #pragma multi_compile_instancing
 
+			//--------------------------------------
+			//Character Shadow
+			#pragma multi_compile _ _CHARACTER_SHADOW
+
 
 			#pragma vertex vert
 			#pragma fragment frag
@@ -174,9 +178,8 @@
 				half shadow = 1;
 					
 #ifdef _MAIN_LIGHT_SHADOWS
-				shadow = GetMainLightShadowAttenuation(i.shadowCoord);
+				shadow = GetMainLightShadowAttenuation(i.shadowCoord, i.worldPos.xyz);
 #endif
-
 
 				half3 SunIrradiance = SunColor.xyz * userData1.x * 2.0 * ShadowColor.y /** cPointCloudm[0].w*/;
 				
@@ -245,7 +248,7 @@
 
 				//Crystal
 				half3 crystalMaskmap = tex2D(_CrystalMask, i.uv);	
-				half3 crystalmap = tex2D(_CrystalMapTex, 5 * _CrystalUVTile * i.uv);
+				half3 crystalmap = tex2D(_CrystalMapTex, 5 * _CrystalUVTile * i.uv).xyz;
 
 				half3 crystalmask = crystalMaskmap.z * _CrystalIntensity * _CrystalColor * crystalmap;//Only mouth 
 

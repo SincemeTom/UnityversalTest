@@ -60,6 +60,10 @@
 			#pragma multi_compile _ _SHADOWS_SOFT
 			#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
 
+			//--------------------------------------
+			//Character Shadow
+			#pragma multi_compile _ _CHARACTER_SHADOW
+
 			// -------------------------------------
 			// Unity defined keywords
 			#pragma multi_compile _ DIRLIGHTMAP_COMBINED
@@ -75,7 +79,7 @@
 
 			#pragma vertex vert
 			#pragma fragment frag
-
+						
 			#include "MJH_Common.hlsl"
 
 
@@ -146,9 +150,6 @@
                  half AO = _AO;
             #endif
 
-
-               
-
                 //Normal 
                 float4 tangentNormal = float4(0,0,0,0);
                 tangentNormal.xy = unpackNormal.xy * Paramters.w;
@@ -164,7 +165,7 @@
 				half shadow = 1;
 
 #ifdef _MAIN_LIGHT_SHADOWS
-				shadow = GetMainLightShadowAttenuation(i.shadowCoord);
+				shadow = GetMainLightShadowAttenuation(i.shadowCoord, i.worldPos.xyz);
 #endif
 
                 //Specular
@@ -172,7 +173,7 @@
                 float3 DiffuseColor = (BaseColor - BaseColor * Metallic) / 3.141593;
 
                 //Light & view
-				half3 lightDir = normalize(_WorldSpaceLightPos0.www*(-i.worldPos) + _WorldSpaceLightPos0.xyz);
+				half3 lightDir = normalize(_WorldSpaceLightPos0.www *(-i.worldPos.xyz) + _WorldSpaceLightPos0.xyz);
 				half3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));
                 half3 I = -viewDir;
 

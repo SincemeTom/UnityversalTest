@@ -98,7 +98,8 @@ namespace UnityEngine.Rendering.Universal
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
-            CharacterShadow characterShadow = CharacterShadow.CurrentCharacterShadow;
+            SceneSettings sceneSettings = SceneSettings.CurrentSceneSettings;
+            CharacterShadow characterShadow = sceneSettings.m_CharacterShadow;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 

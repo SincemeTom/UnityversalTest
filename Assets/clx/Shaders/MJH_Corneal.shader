@@ -212,7 +212,7 @@
 
 				//Apply Fog
 				float VdotL = saturate(dot(-viewDir, lightDir));
-				Color = ApplyFogColor(Color, i.worldPos.xyz, viewDir.xyz, VdotL, EnvInfo.z);
+				//Color = ApplyFogColor(Color, i.worldPos.xyz, viewDir.xyz, VdotL, EnvInfo.z);
 
 				//Liner to Gamma
 

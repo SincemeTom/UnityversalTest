@@ -77,7 +77,7 @@ Material:
     - EnvStrength: 0.1
     - NormalMapBias: -0.5
     - PointCloudEnable: 1
-    - _AOIntensity: 3.14
+    - _AOIntensity: 1
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1

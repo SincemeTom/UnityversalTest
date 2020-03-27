@@ -99,7 +99,12 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = renderingData.cameraData.camera;
             SceneSettings sceneSettings = SceneSettings.CurrentSceneSettings;
-            CharacterShadow characterShadow = sceneSettings.m_CharacterShadow;
+            CharacterShadow characterShadow = null;
+            if (sceneSettings != null)
+            {
+                characterShadow = sceneSettings.m_CharacterShadow;
+            }
+             
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 

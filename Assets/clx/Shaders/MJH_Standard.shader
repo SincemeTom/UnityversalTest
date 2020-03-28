@@ -167,7 +167,7 @@
 #ifdef _MAIN_LIGHT_SHADOWS
 				shadow = GetMainLightShadowAttenuation(i.shadowCoord, i.worldPos.xyz);
 #endif
-
+				//return shadow;
                 //Specular
                 float3 SpecularColor = BaseColor * Metallic + 0.04;
                 float3 DiffuseColor = (BaseColor - BaseColor * Metallic) / 3.141593;

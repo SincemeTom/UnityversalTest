@@ -39,6 +39,8 @@ float GetCharacterShadow(float3 worldPos)
 
 	ShadowSamplingData shadowSamplingData = GetCharacterShadowSamplingData();
 	half4 shadowParams = GetCharacterShadowParams();
-	return SampleShadowmap(TEXTURE2D_ARGS(_CharacterShadowMap, sampler_CharacterShadowMap), shadowCoord, shadowSamplingData, shadowParams, false);
+	shadow = 1 - SampleShadowmap(TEXTURE2D_ARGS(_CharacterShadowMap, sampler_CharacterShadowMap), shadowCoord, shadowSamplingData, shadowParams, false);
+	shadow *= saturate(sign((shadowCoord.x - 0) * (1 - shadowCoord.x))) * saturate(sign((shadowCoord.y - 0) * (1 - shadowCoord.y)));
+	return 1 - shadow;
 }
 #endif

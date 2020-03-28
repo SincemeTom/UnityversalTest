@@ -65,12 +65,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 
             float ditance = Vector3.Distance(camera.transform.position, targetPos);
-            float znear = -ditance;
+            ditance = Mathf.Max(ditance, radius);
             float zfar = ditance + near + far;
-            float top = Mathf.Tan(Mathf.Deg2Rad * camera.fieldOfView * 0.5f) * ditance;
+            float top = Mathf.Tan(Mathf.Deg2Rad * camera.fieldOfView  * 0.5f) * ditance;
 
             float right = camera.aspect * top;
             float max = Mathf.Max(top, right);
+           // max = Mathf.Max(max, radius);
             top = right = max;
             float bottom = -top;
             float left = -right;

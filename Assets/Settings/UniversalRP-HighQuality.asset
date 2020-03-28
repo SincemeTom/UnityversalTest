@@ -30,7 +30,7 @@ MonoBehaviour:
   m_MainLightShadowsSupported: 1
   m_CharacterShadowsSupported: 1
   m_MainLightShadowmapResolution: 256
-  m_CharacterShadowmapResolution: 512
+  m_CharacterShadowmapResolution: 1024
   m_AdditionalLightsRenderingMode: 1
   m_AdditionalLightsPerObjectLimit: 4
   m_AdditionalLightShadowsSupported: 1

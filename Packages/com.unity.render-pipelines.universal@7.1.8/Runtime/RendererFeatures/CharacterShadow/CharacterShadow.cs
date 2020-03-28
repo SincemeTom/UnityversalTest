@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     public class CharacterShadow : MonoBehaviour
     {
         public bool autoFocus;
+        public bool autoCulling = true;
         public float autoFocusRadiusBias;
         public Transform target;
         public Vector3 offset;
@@ -52,9 +53,40 @@ namespace UnityEngine.Rendering.Universal.Internal
             offset = bounds.center - target.position;
             radius = autoFocusRadiusBias + bounds.extents.magnitude;
         }
-
-        public bool UpdateFocus(Light shadowLight) {
+        public bool AutoUpdateMatrix(Light shadowLight, Camera camera)
+        {
             if (target == null) return false;
+            if (camera == null) return false;
+            var targetPos = target.position + target.right * offset.x
+                + target.up * offset.y + target.forward * offset.z;
+
+            var lightDir = shadowLight.transform.forward;
+            var lightOri = shadowLight.transform.rotation;
+
+
+            float ditance = Vector3.Distance(camera.transform.position, targetPos);
+            float znear = -ditance;
+            float zfar = ditance + near + far;
+            float top = Mathf.Tan(Mathf.Deg2Rad * camera.fieldOfView * 0.5f) * ditance;
+
+            float right = camera.aspect * top;
+            float max = Mathf.Max(top, right);
+            top = right = max;
+            float bottom = -top;
+            float left = -right;
+            m_cameraCenter = targetPos - lightDir * ditance;
+            m_viewMatrix = GeometryUtils.CalculateWorldToCameraMatrixRHS(m_cameraCenter, lightOri);
+            m_projMatrix = Matrix4x4.Ortho(left, right, bottom, top, near, zfar);
+
+            m_shadowMatrix = GetShadowTransform(m_projMatrix, m_viewMatrix, 0);
+            return true;
+        }
+        public bool UpdateFocus(Light shadowLight, Camera camera) {
+            if (target == null) return false;
+            if (camera == null) return false;
+
+            if (autoCulling)
+                return AutoUpdateMatrix(shadowLight, camera);
             var targetPos = target.position + target.right * offset.x
                 + target.up * offset.y + target.forward * offset.z;
 

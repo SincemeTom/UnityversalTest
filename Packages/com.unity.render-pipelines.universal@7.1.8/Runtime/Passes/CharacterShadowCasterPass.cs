@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (light.shadows == LightShadows.None)
                 return false;
 
-            bool renderShadow = characterShadow.UpdateFocus(light, camera);
+            bool renderShadow = characterShadow.UpdateFocus(light);
             if (!renderShadow) return false;
 
 

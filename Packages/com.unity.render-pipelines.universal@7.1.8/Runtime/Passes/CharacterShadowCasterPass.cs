@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (light.shadows == LightShadows.None)
                 return false;
 
-            bool renderShadow = characterShadow.UpdateFocus(light);
+            bool renderShadow = characterShadow.UpdateFocus(light,camera);
             if (!renderShadow) return false;
 
 
@@ -165,7 +165,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cullingParams.isOrthographic = true;
                 cullingParams.cullingMatrix = characterShadow.ProjMatrix * characterShadow.ViewMatrix;
                 cullingParams.origin = characterShadow.CameraCenter;
-                cullingParams.cullingOptions = CullingOptions.OcclusionCull;
+                cullingParams.cullingOptions = CullingOptions.ShadowCasters;
+                //cullingParams.SetLayerCullingDistance
                 Plane[] planes = GeometryUtility.CalculateFrustumPlanes(cullingParams.cullingMatrix);
                 cullingParams.cullingPlaneCount = 6;
                 for (int i = 0; i < planes.Length; ++i)
@@ -178,8 +179,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 float frusumSize = 2.0f / characterShadow.ProjMatrix.m00;
                 const float kernelRadius = 2.5f;
                 float m_texelSize = frusumSize / Mathf.Min(m_ShadowmapWidth, m_ShadowmapHeight);
-                float m_depthBias =  -characterShadow.bias * m_texelSize;
-                float m_normalBias = -characterShadow.normalBias * m_texelSize;
+                float m_depthBias =  -characterShadow.Bias * m_texelSize;
+                float m_normalBias = -characterShadow.NormalBias * m_texelSize;
                 if (light.shadows == LightShadows.Soft)
                 {
                     m_depthBias *= kernelRadius;

@@ -9,6 +9,11 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         public bool autoFocus;
         public bool autoCulling = true;
+        public bool autoBias = true;
+        public float nearBias = 1.0f;
+        public float farBias = 5.0f;
+        public float nearNormalBias = 1.0f;
+        public float farNormalBias = 5.0f;
         public float autoFocusRadiusBias;
         public Transform target;
         public Vector3 offset;
@@ -22,6 +27,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         public float bias = 1.0f;
         public float normalBias = 1.0f;
 
+        private float m_bias = 1.0f;
+        private float m_normalbias = 1.0f;
+
         public Light MainLight;
         private Matrix4x4 m_viewMatrix;
         private Matrix4x4 m_projMatrix;
@@ -32,13 +40,22 @@ namespace UnityEngine.Rendering.Universal.Internal
         public Matrix4x4 ProjMatrix { get { return m_projMatrix; } set { m_projMatrix = value; } }
         public Matrix4x4 ShadowMatrix { get { return m_shadowMatrix; } set { m_shadowMatrix = value; } }
         public Vector3 CameraCenter { get { return m_cameraCenter; } set { m_cameraCenter = value; } }
+        public float Bias { get { return autoBias ? m_bias : bias; } set { m_bias = value; } }
+        public float NormalBias { get { return autoBias ? m_normalbias : normalBias; } set { m_normalbias = value; } }
 
 
         void Update() {
             if (target == null) return;
             AutoFocus();
         }
-
+        private void OnEnable()
+        {
+            
+        }
+        private void OnDisable()
+        {
+            
+        }
         private void AutoFocus() {
             if (!autoFocus) return;
             var targetPos = target.position + target.right * offset.x
@@ -63,19 +80,27 @@ namespace UnityEngine.Rendering.Universal.Internal
             var lightDir = shadowLight.transform.forward;
             var lightOri = shadowLight.transform.rotation;
 
+            float cosA = Mathf.Abs(Vector3.Dot(lightDir, camera.transform.forward));
+            float distance = Vector3.Distance(camera.transform.position, targetPos);
+            distance = Mathf.Max(distance, radius);
 
-            float ditance = Vector3.Distance(camera.transform.position, targetPos);
-            ditance = Mathf.Max(ditance, radius);
-            float zfar = ditance + near + far;
-            float top = Mathf.Tan(Mathf.Deg2Rad * camera.fieldOfView  * 0.5f) * ditance;
+            float zfar = (distance + near + far) ;
+            float top = Mathf.Tan(Mathf.Deg2Rad * camera.fieldOfView  * 0.5f) * distance;
 
+            if (autoBias)
+            {
+                Bias = Mathf.Lerp(nearBias, farBias, distance / (distance + radius));
+                NormalBias = Mathf.Lerp(nearNormalBias, farNormalBias, distance / (distance + radius));
+            }
             float right = camera.aspect * top;
             float max = Mathf.Max(top, right);
            // max = Mathf.Max(max, radius);
             top = right = max;
             float bottom = -top;
             float left = -right;
-            m_cameraCenter = targetPos - lightDir * ditance;
+
+
+            m_cameraCenter = targetPos - lightDir * radius;
             m_viewMatrix = GeometryUtils.CalculateWorldToCameraMatrixRHS(m_cameraCenter, lightOri);
             m_projMatrix = Matrix4x4.Ortho(left, right, bottom, top, near, zfar);
 

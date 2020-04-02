@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: public_plants_fengshu_trunk_Mat_Opt
+  m_Shader: {fileID: 4800000, guid: a9a24056c070e024c902ae04acda37fa, type: 3}
+  m_ShaderKeywords: USE_NORMALMAP _EMISSIVEAFFECTBYENVIRONMENT_ON
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 1
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BumpMap:
+        m_Texture: {fileID: 2800000, guid: 2ba4b31953e0cdd43bab2d56e713afd1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 0b8f031dd35fc134fa486b5ed636fc0f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _AO_Ins: 1
+    - _BumpScale: 1
+    - _Cull: 2
+    - _Cutoff: 0.3
+    - _CutoffMax: 800
+    - _DiffLevel: 0.74
+    - _EmissiveAffectByEnvironment: 1
+    - _EmissivePower: 0
+    - _GrassTremblePower: 1
+    - _GrassTrembleScale: 1
+    - _GrassTrembleSpeed: 0.2
+    - _GustWindPower: 0.2
+    - _GustWindScale: 0.3
+    - _GustWindSpeed: 0.2
+    - _LightLevel: 1
+    - _MaxIntensity: 5
+    - _Metallic_Ins: 1
+    - _RainEffectInfluence: 1
+    - _ReflLevel: 0
+    - _ReflectionIns: 0
+    - _RimLevel: 2
+    - _RotateUV: 18
+    - _Roughness: 1
+    - _Roughness_Ins: 1
+    - _ShadowIntensity: 1
+    - _Shininess: 10
+    - _SnowEffectInfluence: 0.69
+    - _SpecLevel: 1
+    - _UseEmissive: 0
+    - _WindForceScale: 1
+    - _WindForceSpeed: 1
+    - _WindPower: 0.04
+    - _WindStength: 0.2
+    - _ao: 1.21
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissiveColor: {r: 1, g: 1, b: 1, a: 1}
+    - _RimColor: {r: 0.3679245, g: 0.17581321, b: 0.11280705, a: 1}
+    - _RimDir: {r: 0, g: 1, b: 0, a: 1}
+    - _SpecColor: {r: 0.6981132, g: 0.3984514, b: 0.3984514, a: 1}

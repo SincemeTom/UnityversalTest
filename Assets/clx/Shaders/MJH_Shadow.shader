@@ -47,7 +47,7 @@
 		{
 			Name "ShadowCaster"
 			Tags{"LightMode" = "ShadowCaster"}
-
+						ColorMask off
 			ZWrite On
 			ZTest Less
 			Cull Back
@@ -79,7 +79,7 @@
 			Name "DepthOnly"
 			Tags{"LightMode" = "DepthOnly"}
 
-
+						ColorMask off
 			ZWrite On
 			ZTest Less
 			//ColorMask 0

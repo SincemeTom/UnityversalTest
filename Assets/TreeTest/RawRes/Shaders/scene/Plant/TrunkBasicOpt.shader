@@ -29,6 +29,8 @@
 			Name "ForwardLit"
 			Tags{"LightMode" = "UniversalForward"}
 			Cull Back
+			ZWrite Off
+			ZTest Equal
 			Fog { Mode Off }
 
 			CGPROGRAM
@@ -179,9 +181,9 @@
 				half3x3 local2WorldTranspose = half3x3(float3(0,0,0), float3(0, 0, 0), i.normalWorld.xyz);
 #endif
 				fixed3 metallicGloss = fixed3(1, 0, 1);
-#if defined(SNOWY_WEATHER_ON)	
+/*#if defined(SNOWY_WEATHER_ON)	
 				float SnowMask = SnowModifier(i.normalWorld.xyz, i.posWorld, local2WorldTranspose, 1, _SnowEffectInfluence, bump, texcol.rgb, metallicGloss.r);
-#endif
+#endif*/
 
 				fixed metallic = metallicGloss.g;
 				metallic *= metallic;
@@ -209,8 +211,12 @@
 				float nh = saturate(dot(bump, h));
 				float spec = pow(nh, _Shininess * max(0.2, gloss));
 
-				UNITY_LIGHT_ATTENUATION(attenuation, i, i.posWorld.xyz);
+				//UNITY_LIGHT_ATTENUATION(attenuation, i, i.posWorld.xyz);
+				float attenuation = 1;
 
+/*#ifdef _MAIN_LIGHT_SHADOWS
+				attenuation = GetMainLightShadowAttenuation(i.shadowCoord, i.posWorld.xyz);
+#endif*/
 				float3 attenLight = _LightColor0.rgb * attenuation;
 				float3 indirectDiffuse = (UNITY_LIGHTMODEL_AMBIENT).rgb + i.vertexLight;
 				float3 directDiffuse = max(0.0, NdotL) * attenLight;
@@ -233,6 +239,8 @@
 			}
 			ENDCG
 		}
+		//UsePass "MJH/Shadow/ShadowCaster"
+		UsePass "MJH/Shadow/DepthOnly"
 	}
 	//CustomEditor "PlantsTrunksShaderGUI"
 	//Fallback "Diffuse"

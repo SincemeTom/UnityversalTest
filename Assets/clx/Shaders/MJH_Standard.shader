@@ -46,9 +46,9 @@
 			// no LightMode tag are also rendered by Universal Render Pipeline
 			Name "ForwardLit"
 			Tags{"LightMode" = "UniversalForward"}
-			ZWrite Off
+			//ZWrite Off
 			ZTest Equal
-
+			
 			HLSLPROGRAM
 
 			// -------------------------------------
@@ -140,6 +140,7 @@
                 half4 Normalmap = tex2Dbias(_NormalMap, float4(i.uv.xy, 0, NormalMapBias));
                 half4 unpackNormal = MJH_UnpackNormal(Normalmap);
                 float roughness = (rain - rain * Normalmap.z) * _Roughness; // NormalMap .z save roughness
+				//return roughness.xxxx;
                 half SSSMask = 1 - Normalmap.w;
                 half AO = _AO * Normalmap.w;
             #else
@@ -178,6 +179,7 @@
                 half3 I = -viewDir;
 
                 half3 reflectDir = reflect(-viewDir,normalVec);
+
 				half NdotV = clamp(dot(viewDir,normalVec),0,1);
                 half3 SunColor = _LightColor0.rgb;
                 half NdotL = dot(normalVec, lightDir);
@@ -223,7 +225,7 @@
                 half3 EnvBRDF = EnvBRDFApprox(SpecularColor, roughness, NdotV);
 
                 half3 EnvSpecular = IBL_Specular(roughness, reflectDir.xyz, EnvBRDF,GILighting);
-
+				//return half4(EnvSpecular, 1);
                 half3 H = normalize(viewDir + lightDir);
 				half VdotH = clamp(dot(viewDir,H),0,1);
 				half NdotH = clamp(dot(normalVec,H),0,1);
@@ -264,6 +266,7 @@
             }
 			ENDHLSL
         }
+
 		UsePass "MJH/Shadow/ShadowCaster"
 		UsePass "MJH/Shadow/DepthOnly"
 

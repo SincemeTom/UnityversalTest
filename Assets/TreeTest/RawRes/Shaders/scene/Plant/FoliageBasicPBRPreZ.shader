@@ -1,8 +1,9 @@
 ﻿Shader "Qin/Scene/FoliageBasicPBRPreZ" {
 	Properties {
-
+		[Toggle(_ALPHATEST_ON)]_ALPHATEST_ON("Alpha Test", float) = 0
+		[Toggle(_WAVE_ON)]_WAVE_ON("Move", float) = 0
 		[HideInInspector]_Color ("Ambient Color", Color) = (0,0,0,0)
-		[NoScaleOffset] _MainTex ("Base (RGB)", 2D) = "white" {}
+		[NoScaleOffset] _BaseMap ("Base (RGB)", 2D) = "white" {}
 		_TintColor("Tint AO", Color) = (0.5, 0.5, 0.5, 1.0)
 		_Contrast("Contrast" , Range(0, 1)) = 0.5
 		_Brightness("Tint Color", Color) = (1.0, 1.0, 1.0, 1.0)
@@ -25,21 +26,16 @@
 		_SnowTopIntensity("Snow Top Intensity", Range(0,2)) = 0.8
 	}
 
-		CGINCLUDE
-
-			#include "FoliageCommon.cginc"
-
-		ENDCG
 
 		SubShader {
 
-			Name "DepthOnly"
-			Tags{"LightMode" = "DepthOnly"}
+			Tags { "QUEUE" = "AlphaTest" "RenderType" = "Opaque" }
 
 			LOD 100
 			Pass
 			{
-				Name "EarlyZ"
+				Name "DepthOnly"
+				Tags{"LightMode" = "DepthOnly"}
 
 				//第一次只写入深度
 				ColorMask off
@@ -47,46 +43,58 @@
 				ZTest Less 
 				Cull off //植被双面渲染
 
+				HLSLPROGRAM
 
-				CGPROGRAM
 
-				#include "UnityCG.cginc"
+				#pragma prefer_hlslcc gles
+				#pragma exclude_renderers d3d11_9x
+				#pragma target 3.0
 
 				#pragma vertex vert
 				#pragma fragment frag
-				#pragma target 3.0
+
 				#pragma multi_compile_instancing
-				#pragma fragmentoption ARB_precision_hint_fastest
-				#pragma multi_compile __ _MOVE		
+				#pragma multi_compile _ _WAVE_ON
+				#pragma multi_compile _ _ALPHATEST_ON	
+
 
 				uniform sampler2D _MainTex; 
 				uniform float4 _MainTex_ST;
-				uniform fixed _Cutoff;
+				uniform half _Cutoff;
 				float _CutoffMax;
 
-				struct v2f
-				{
-					UNITY_POSITION(pos);
-					float2 uv : TEXCOORD0;
+				#include "FoliageCommon.hlsl"
+				struct appdata {
+					float4 vertex : POSITION;
+					float4 color :COLOR;
+					float4 texcoord : TEXCOORD0;
 
 					UNITY_VERTEX_INPUT_INSTANCE_ID
-					UNITY_VERTEX_OUTPUT_STEREO
+				};
+				struct v2f
+				{
+					float4 pos : POSITION;
+					float2 uv : TEXCOORD0;
+					UNITY_VERTEX_INPUT_INSTANCE_ID
 				};
 
-				v2f vert(appdata_full v)
+				v2f vert(appdata v)
 				{
-					v2f o;
+					v2f o = (v2f)0;
+
 					UNITY_SETUP_INSTANCE_ID(v);
 					UNITY_TRANSFER_INSTANCE_ID(v, o);
-					UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-					o.uv = v.texcoord.xy;
-					float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 
-#if _MOVE
-					float3 offset = SimpleGrassWind(worldPos);
-					worldPos += lerp(float3(0.0, 0.0, 0.0), offset.xyz,  v.color.xyz);
+					o.uv = v.texcoord.xy;
+					float3 positionWS = TransformObjectToWorld(v.vertex.xyz).xyz;
+#ifdef _WAVE_ON
+					float3 offset = SimpleGrassWind(positionWS);
+					positionWS += lerp(float3(0.0, 0.0, 0.0), offset.xyz, v.color.xyz);
 #endif
-					o.pos = mul(UNITY_MATRIX_VP, half4(worldPos,1));
+
+					float4 positionCS = TransformWorldToHClip(positionWS.xyz);
+
+					o.pos = positionCS;
 
 
 					return o;
@@ -94,12 +102,12 @@
 
 				float4 frag(v2f i) : SV_Target
 				{
-					UNITY_SETUP_INSTANCE_ID(i);
-					fixed4 texcol = tex2D(_MainTex, i.uv);
+					UNITY_SETUP_INSTANCE_ID(i)
+					half4 texcol = texcol = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
 					clip(texcol.a - _Cutoff);
-					return float4(0,0,0, 1);
+					return 0;
 				}
-				ENDCG
+				ENDHLSL
 			}
 			Pass 
 			{
@@ -113,44 +121,59 @@
 				ZWrite Off
 				ZTest Equal
 
-				CGPROGRAM
+				HLSLPROGRAM
 
-				#pragma multi_compile_fwdbase
+
+				// Required to compile gles 2.0 with standard srp library
+				#pragma prefer_hlslcc gles
+				#pragma exclude_renderers d3d11_9x
+				#pragma target 3.0
+
+				// -------------------------------------
+				// Universal Pipeline keywords
+				#pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+				#pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+				#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+				#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+				#pragma multi_compile _ _SHADOWS_SOFT
+				#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+
+				// -------------------------------------
+				// Unity defined keywords
+				#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+				#pragma multi_compile _ LIGHTMAP_ON
+				#pragma multi_compile_fog
+
+				//--------------------------------------
+				// GPU Instancing
 				#pragma multi_compile_instancing
+
+				#pragma multi_compile _ _WAVE_ON
+				#pragma multi_compile _ _ALPHATEST_ON
+
+				#include "FoliageCommon.hlsl"
+
+				#pragma target 3.0
+
 				#pragma vertex vert
 				#pragma fragment frag
-				#define QYN_SHADER_PLANT_LIGHTING_MODEL 1
-				#pragma multi_compile_instancing
-				#pragma multi_compile_fwdbase_fullshadows
-				#pragma skip_variants DIRLIGHTMAP_COMBINED VERTEXLIGHT_ON DYNAMICLIGHTMAP_ON DYNAMICLIGHTMAP_OFF LIGHTMAP_ON LIGHTMAP_OFF LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK
-				#pragma multi_compile __ SNOWY_WEATHER_ON
-
-				#pragma only_renderers d3d9 d3d11 glcore gles gles3 metal d3d11_9x xboxone ps4 psp2 n3ds wiiu vulkan
-				#pragma target 3.0
-				#pragma multi_compile __ _MOVE	
-				#pragma multi_compile __ FOG_POSTPROCESS_ON
-
-				#include "AutoLight.cginc"
-				#include "UnityCG.cginc"
-				#include "Lighting.cginc"
-				//#include "QYN_ShadingCommon.cginc"
-				//#include "FogTransparentPP.cginc"
 
 
-				uniform sampler2D _MainTex;
-				uniform fixed4 _Color;
-				uniform fixed4 _TintColor;
+
+				//uniform sampler2D _BaseMap;
+				uniform float4 _Color;
+				uniform float4 _TintColor;
 
 				//uniform fixed4 _SpecColor;
-				uniform fixed _SpecLevel;
+				uniform float _SpecLevel;
 				uniform float _Shininess;
-				uniform fixed _Contrast;
-				uniform fixed4 _Brightness;
+				uniform float _Contrast;
+				uniform float4 _Brightness;
 
-				uniform fixed _DiffLevel;
-				uniform fixed _LightLevel;
+				uniform float _DiffLevel;
+				uniform float _LightLevel;
 
-				uniform fixed _Cutoff;
+				uniform float _Cutoff;
 				float _CutoffMax;
 
 				float _ShadowIntensity;
@@ -163,97 +186,104 @@
 				float _SnowTopIntensity;
 				float EC_EmissiveWeight;
 
-				struct appdata {
-					float4 vertex : POSITION;
-					float4 texcoord : TEXCOORD0;
-					float3 normal : NORMAL;
-					float4 color :COLOR;
-					UNITY_VERTEX_INPUT_INSTANCE_ID
-				};
-
-				struct v2f {
-					float4 pos : SV_POSITION;
-					float2 uv : TEXCOORD0;
-					fixed3 vertexLight : TEXCOORD1;
-					half4 viewDir : TEXCOORD2;
-					LIGHTING_COORDS(3,4)
-					//half3 rimDir : TEXCOORD5;
-					half3 lightDir : TEXCOORD6;
-					half3 normalWorld : TEXCOORD7;
-					float4 posWorld : TEXCOORD8;
-					float4 vxalpha : COLOR;
-					//QYN_FOG_COORDS(9, 10)
-					UNITY_VERTEX_INPUT_INSTANCE_ID
-				
-				
-				};
-
-				v2f vert(appdata v)
+				struct VertexInput
 				{
-					v2f o=(v2f)0;
+					float4 vertex       : POSITION;
+					float3 normal       : NORMAL;
+					float4 tangent      : TANGENT;
+					half4 color         : COLOR;
+					float2 texcoord     : TEXCOORD0;
+					float2 lightmapUV   : TEXCOORD1;
+					UNITY_VERTEX_INPUT_INSTANCE_ID
+				};
+				struct VertexOutput
+				{
+					float2 uv                       : TEXCOORD0;
+					float3 vertexLight				: TEXCOORD1;
+
+					float4 posWorld					: TEXCOORD2;    // xyz: posWS, w: Shininess * 128
+
+					half3  normalWorld              : TEXCOORD3;
+					half4 viewDir                   : TEXCOORD4;
+					half3 lightDir					: TEXCOORD5;
+#ifdef _MAIN_LIGHT_SHADOWS
+					float4 shadowCoord              : TEXCOORD6;
+#endif
+					float4 vxalpha                  : TEXCOORD7;
+
+					float4 pos						: SV_POSITION;
+					UNITY_VERTEX_INPUT_INSTANCE_ID
+					UNITY_VERTEX_OUTPUT_STEREO
+				};
+
+
+				VertexOutput vert(VertexInput v)
+				{
+					VertexOutput o = (VertexOutput)0;
 
 					UNITY_SETUP_INSTANCE_ID(v);
 					UNITY_TRANSFER_INSTANCE_ID(v, o);
+					UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 					o.uv = v.texcoord.xy;
-					float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 
-	#if _MOVE
-					float3 offset = SimpleGrassWind(worldPos);
-					worldPos += lerp(float3(0.0, 0.0, 0.0), offset.xyz , v.color.xyz);
+#ifdef LIGHTMAP_OFF
+					o.vertexLight = ShadeSH9(float4(o.normalWorld, 1.0)) * EC_EmissiveWeight;
+#else
+					o.vertexLight = float3(1, 1, 1);
+#endif
+					float3 positionWS = TransformObjectToWorld(v.vertex.xyz).xyz;
+#ifdef _WAVE_ON
+					float3 offset = SimpleGrassWind(positionWS);
+					positionWS += lerp(float3(0.0, 0.0, 0.0), offset.xyz , v.color.xyz);
+#endif
 
-	#endif
+					float4 positionCS = TransformWorldToHClip(positionWS.xyz);
 
-					o.pos = mul(UNITY_MATRIX_VP, half4(worldPos, 1));
-					o.posWorld = half4(worldPos,1);
+					o.posWorld = half4(positionWS, 1);
+					o.pos = positionCS;
 
 					float3 viewDirForLight = UnityWorldSpaceViewDir(o.posWorld.xyz);
 					float viewLength = length(viewDirForLight);
 					o.viewDir.xyz = viewDirForLight / viewLength;
 					o.viewDir.w = viewLength / _CutoffMax;
 
-					o.normalWorld = UnityObjectToWorldNormal(v.normal);
-				
+					float3 normal = v.normal;
+					o.normalWorld = TransformObjectToWorldNormal(normal);
+			
 					o.lightDir = normalize(UnityWorldSpaceLightDir(o.posWorld.xyz));
 
 					o.vxalpha = v.color;
 
-					o.pos = mul(UNITY_MATRIX_VP, half4(worldPos,1));
 
-					TRANSFER_VERTEX_TO_FRAGMENT(o);
+#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
 
-				#ifdef LIGHTMAP_OFF
-					o.vertexLight = ShadeSH9(float4(o.normalWorld, 1.0)) * EC_EmissiveWeight;
-				#else
-					o.vertexLight = fixed3(1, 1, 1);
-				#endif
-					//QYN_TRANSFER_FOG(o, o.posWorld)
+#if SHADOWS_SCREEN
+					o.shadowCoord = ComputeScreenPos(positionCS);
+#else
+					o.shadowCoord = TransformWorldToShadowCoord(o.posWorld);
+#endif
+#endif
 					return o;
 				}
 
-				fixed4 frag(v2f i) : COLOR
+				half4 frag(VertexOutput i) : SV_Target
 				{
+
 					UNITY_SETUP_INSTANCE_ID(i);
-							
-					fixed4 texcol = tex2D(_MainTex, i.uv);
+					UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+				
+					half4 texcol = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
+					//Alpha(SampleAlbedoAlpha(i.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, half4(1,1,1,1), _Cutoff);
 
 					float usevxalpha = i.vxalpha.a;
 
 					half3 bump = i.normalWorld;
 
-/*#if defined(SNOWY_WEATHER_ON)
-					float foliageNoise = tex2D(_SnowFoliageNoise, i.uv);
-					float upW = dot(i.normalWorld, half3(0, 1, 0));
-					upW = (upW - _SnowCoverage) / (1 - _SnowCoverage);
 
-					float snowMask = saturate((foliageNoise + _SnowTopIntensity * saturate(upW)) * _SnowEffectInfluence * SnowLevel);
-					snowMask = snowMask > _SnowOverallThres ? pow(((snowMask - _SnowOverallThres) / (1 - _SnowOverallThres)), 2.0) : 0;
 
-					texcol.rgb = lerp(texcol.rgb, 1, snowMask);
-#endif*/
-
-					fixed oneMinusReflectivity = unity_ColorSpaceDielectricSpec.a;
-					fixed3 reflColor = unity_ColorSpaceDielectricSpec.rgb;
+					half oneMinusReflectivity = unity_ColorSpaceDielectricSpec.a;
+					half3 reflColor = unity_ColorSpaceDielectricSpec.rgb;
 
 					half3 lightDir = i.lightDir.xyz;
 					half3 viewDir = half3(i.viewDir.xyz);
@@ -265,8 +295,11 @@
 					float nh = saturate(dot(bump, h));
 					nh = lerp(0.01, 1, nh);
 					float spec = pow(nh, _Shininess);*/
+					float attenuation = 1;
 
-					UNITY_LIGHT_ATTENUATION(attenuation, i, i.posWorld.xyz);
+#ifdef _MAIN_LIGHT_SHADOWS
+					attenuation = GetMainLightShadowAttenuation(i.shadowCoord, i.posWorld.xyz);
+#endif
 					float3 attenLight = _LightColor0.rgb * attenuation;
 					float3 indirectDiffuse = (UNITY_LIGHTMODEL_AMBIENT).rgb + i.vertexLight;
 
@@ -276,19 +309,19 @@
 					diffuse = clamp(diffuse, 0, 1);
 
 					float3 colorContrasted = diffuse * _Contrast;
-					float3 bright = colorContrasted + _Brightness;
+					float3 bright = colorContrasted + _Brightness.xxx;
 					diffuse *= bright;
 
 					/*float3 directSpecular = reflColor * _SpecColor.rgb * _SpecLevel * spec * attenLight;
 					float3 specular = directSpecular;*/
 
 					// Composite and apply occlusion
-					fixed3 finalColor = lerp(diffuse , diffuse * _TintColor, 1-usevxalpha) /*+ specular*/;//植被不需要高光，效果很差
+					float3 finalColor = lerp(diffuse , diffuse * _TintColor.xyz, (1-usevxalpha).xxx) /*+ specular*/;//植被不需要高光，效果很差
 
 					//QYN_APPLY_FOG_COLOR(finalColor, i.posWorld, i)
-					return fixed4(saturate(finalColor), 1);
+					return half4(saturate(finalColor), 1);
 				}
-				ENDCG
+				ENDHLSL
 			}
 		
 			Pass
@@ -297,61 +330,61 @@
 				Tags { "LightMode" = "ShadowCaster" }
 
 				Cull Off
-
-				CGPROGRAM
-
-				#include "UnityCG.cginc"
+				ColorMask off
+				ZTest Less
+				HLSLPROGRAM
+				#include "FoliageCommon.hlsl"
 
 				#pragma vertex vert
 				#pragma fragment frag
 				#pragma target 3.0
-				#pragma multi_compile_instancing
-				#pragma multi_compile_shadowcaster
-				#pragma fragmentoption ARB_precision_hint_fastest
-				#pragma multi_compile __ _MOVE		
 
-				uniform sampler2D _MainTex; uniform float4 _MainTex_ST;
-				uniform fixed _Cutoff;
+				#pragma multi_compile_instancing
+				#pragma multi_compile _ _WAVE_ON
+				#pragma multi_compile _ _ALPHATEST_ON		
+
+				uniform sampler2D _MainTex; 
+				uniform float4 _MainTex_ST;
+				uniform half _Cutoff;
 				float _CutoffMax;
 
 				struct v2f
 				{
-					V2F_SHADOW_CASTER;
+					float4 pos : POSITION;
 					float2 uv : TEXCOORD1;
-					half4 viewDir : TEXCOORD2;
-					UNITY_VERTEX_INPUT_INSTANCE_ID
-					UNITY_VERTEX_OUTPUT_STEREO
+					
 				};
 
 				v2f vert(appdata_full v)
 				{
 					v2f o;
 					UNITY_SETUP_INSTANCE_ID(v);
-					UNITY_TRANSFER_INSTANCE_ID(v, o);
-					UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 					o.uv = v.texcoord.xy;
-					float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+					float3 positionWS = TransformObjectToWorld(v.vertex.xyz).xyz;
+#ifdef _WAVE_ON
+					float3 offset = SimpleGrassWind(positionWS);
+					positionWS += lerp(float3(0.0, 0.0, 0.0), offset.xyz, v.color.xyz);
+#endif
 
-	#if _MOVE
-					float3 offset = SimpleGrassWind(worldPos);
-					worldPos += lerp(float3(0.0, 0.0, 0.0), offset.xyz, v.color.xyz);
-	#endif
-
-					o.pos = mul(UNITY_MATRIX_VP, half4(worldPos, 1));
+					float4 positionCS = TransformWorldToHClip(positionWS.xyz);
+					o.pos = positionCS;
 					return o;
 
 				}
 
 				float4 frag(v2f i) : SV_Target
 				{
-					UNITY_SETUP_INSTANCE_ID(i);
-					fixed4 texcol = tex2D(_MainTex, i.uv);
+					half4 texcol = texcol = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
 					clip(texcol.a - _Cutoff);
-					SHADOW_CASTER_FRAGMENT(i)
+					return 0;
 				}
-				ENDCG
+				ENDHLSL
 			}
+
+			//UsePass "MJH/Shadow/ShadowCaster"
+			//UsePass "MJH/Shadow/DepthOnly"
 		}
+
 	//CustomEditor "PlantsShaderGUI"
 	Fallback "Transparent/Cutout/VertexLit"
 }

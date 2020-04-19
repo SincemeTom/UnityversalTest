@@ -193,11 +193,11 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DepthPrepass);
             }
 
-            if (createDepthTexture)
+            /*if (createDepthTexture)
             {
-                //m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
-                //EnqueuePass(m_CopyDepthPass);
-            }
+                m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
+                EnqueuePass(m_CopyDepthPass);
+            }*/
             if (resolveShadowsInScreenSpace)
             {
                 m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);

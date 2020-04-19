@@ -54,6 +54,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool stereo = renderingData.cameraData.isStereoEnabled;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+
             if (!stereo)
             {
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);

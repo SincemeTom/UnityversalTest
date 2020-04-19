@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: M_Standard
   m_Shader: {fileID: 4800000, guid: 6b37578494d988242bfbb67760352473, type: 3}
-  m_ShaderKeywords: _NormalMapEnable
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -48,7 +48,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 834cffe7d21400d448888910accf12b9, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -56,7 +56,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: 7b96a8a3c7a43bf4780cdfd7e268c639, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -82,17 +82,17 @@ Material:
     - _LightMapEnable: 0
     - _Metallic: 1
     - _Mode: 0
-    - _NormalMapEnable: 1
+    - _NormalMapEnable: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Roughness: 1
+    - _Roughness: 0.092
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - EnvInfo: {r: 0, g: 0.5, b: 1, a: 0.1}
+    - EnvInfo: {r: 0, g: 0.5, b: 1, a: 1}
     - FogColor: {r: 0.2590002, g: 0.3290003, b: 0.623, a: 1.102886}
     - FogColor2: {r: 0, g: 0, b: 0, a: 0.7713518}
     - FogColor3: {r: 0.5, g: 0.35, b: 0.09500044, a: 0.6937419}
@@ -102,4 +102,10 @@ Material:
     - Paramters: {r: 0, g: 0, b: 0, a: 1}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorTransform0: {r: 1, g: 0, b: 0, a: 0}
+    - _ColorTransform1: {r: 0, g: 1, b: 0, a: 0}
+    - _ColorTransform2: {r: 0, g: 0, b: 1, a: 0}
+    - _ColorTransform3: {r: 1, g: 0, b: 0, a: 0}
+    - _ColorTransform4: {r: 0, g: 1, b: 0, a: 0}
+    - _ColorTransform5: {r: 0, g: 0, b: 1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

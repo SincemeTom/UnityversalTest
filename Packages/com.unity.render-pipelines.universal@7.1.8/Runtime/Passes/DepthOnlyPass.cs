@@ -75,6 +75,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+
+            cmd.SetGlobalTexture("_CameraDepthTexture", depthAttachmentHandle.Identifier());
         }
 
         /// <inheritdoc/>
